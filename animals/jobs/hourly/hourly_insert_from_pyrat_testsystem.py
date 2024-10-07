@@ -1,6 +1,5 @@
 from django_extensions.management.jobs import HourlyJob
 
-
 class Job(HourlyJob):
     help = ""
 
@@ -15,6 +14,7 @@ class Job(HourlyJob):
         import logging
         import sys
         import requests
+        import json
         from os.path import join
 
         mousedb = 'mousedb_test'
@@ -25,6 +25,7 @@ class Job(HourlyJob):
         PYRAT_API_URL = getattr(settings, "PYRAT_API_URL", None)
         PYRAT_CLIENT_ID = getattr(settings, "PYRAT_CLIENT_ID", None)
         PYRAT_CLIENT_PASSWORD = getattr(settings, "PYRAT_CLIENT_PASSWORD", None)
+
 
         if (PYRAT_API_URL == None or PYRAT_CLIENT_ID == None or PYRAT_CLIENT_PASSWORD == None):
             logger.debug('Die Verbindungsparamater zu PyRAT (PYRAT_API_URL, PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD) müssen noch in der local settings Datei gesetzt werden')
@@ -37,8 +38,9 @@ class Job(HourlyJob):
             r = requests.get(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD))
             r_status = r.status_code
             if r_status != 200:
-                logger.debug('Es konnte keine Verbindung zu der PyRAT API aufgebaut werden. Fehler {} wurde zurück gegeben'.format(r_status))
+                logger.debug('Es konnte keine Verbindung zu der PyRAT API aufgebaut werden. Fehler {}'.format(r_status))
                 send_mail("AniShare Importscriptfehler hourly_insert_from_pyrat.py", 'Es konnte keine Verbindung zu der PyRAT API aufgebaut werden. Fehler {} wurde zurück gegeben'.format(r_status), ADMIN_EMAIL, [ADMIN_EMAIL])    
+                management.call_command("clearsessions")
                 return()
         except BaseException as e: 
             management.call_command("clearsessions")
@@ -47,6 +49,102 @@ class Job(HourlyJob):
 
 
         try:
+            today = datetime.today().date()
+            URL = join(PYRAT_API_URL,'workrequests?k=id&k=description&k=involved_animals_pups_cages&o=0&l=100&status_id=2&unresolved=true&class_id=22&due_date_from={}&due_date_to={}'.format(today,today))
+            r = requests.get(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD))
+            if r.status_code != 200:
+                logger.debug('Fehler bei der Abfrage der Arbeitsaufträge {}'.format(r_status))
+                send_mail("AniShare Importscriptfehler hourly_insert_from_pyrat.py", 'Es konnte keine Arbeitsaufträge abgefragt werden. Fehler {} wurde zurück gegeben'.format(r_status), ADMIN_EMAIL, [ADMIN_EMAIL])    
+                management.call_command("clearsessions")
+                return()
+            data = r.json()
+            for wrequest in data:
+                count_animals_deferred = 0
+                count_animals_imported = 0
+                animals = wrequest['involved_animals_pups_cages']['animals']
+                for animal in animals:
+                    if Animal.objects.filter(mouse_id=animal['id']).exists(): # Check if mouse has already been imported
+                        ani_mouse = Animal.objects.get(mouse_id=animal['id'])  # Get AniShare mouse that has already been imported
+                        if ani_mouse.pyrat_incidentid: # Save the original PyRAT request id using the comment field
+                            if ani_mouse.comment:
+                                    ani_mouse.comment = ani_mouse.comment + "Ursprünglich über AddToAniShare Auftrag: {} importiert; ".format(ani_mouse.pyrat_incidentid)
+                            else:
+                                ani_mouse.comment = "Ursprünglich über AddToAniShare Auftrag: {} importiert; ".format(ani_mouse.pyrat_incidentid)
+                        ani_mouse.pyrat_incidentid = wrequest['id'] # Save the new PyRAT request id
+                        ani_mouse.available_from = datetime.today().date()
+                        ani_mouse.available_to   = datetime.today().date() + timedelta(days=14)
+                        ani_mouse.save()
+                        continue
+                    new_mouse = Animal()
+                    new_mouse.animal_type    = "mouse"
+
+                    URL = join(PYRAT_API_URL,'animals?k=animalid&k=sex&k=gen_bg&k=strain_name&k=building_name&k=mutations&k=labid&k=dateborn&k=eartag_or_id&k=licence_number&animalid={}'.format(animal['id']))
+                    r = requests.get(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD))
+                    mouse = r.json()
+                    if mouse[0]['licence_number'] =="": # mouse has no licence
+                        count_animals_deferred = count_animals_deferred + 1
+                        send_mail("AniShare: Mouse without license", 'You created a work request with the ID {} to add the mouse {} to AniShare. It is not possible to import a mouse without a license. '.format(wrequest['id'], mouse[0]['eartag_or_id']), ADMIN_EMAIL, [ADMIN_EMAIL])
+                        URL = join(PYRAT_API_URL,'workrequests/{}/comments'.format(wrequest['id']))
+                        comment = {"comment": "Mouse {} without licence can not be imported".format(mouse[0]['eartag_or_id'])}
+                        comment = json.dumps(comment)
+                        r = requests.post(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD),data=comment)
+                        continue
+                    new_mouse.database_id    = mouse[0]['eartag_or_id']
+                    new_mouse.lab_id         = mouse[0]['labid']
+                    new_mouse.amount         = 1
+                    new_mouse.pyrat_incidentid = wrequest['id']
+                    new_mouse.genetic_background  = mouse[0]['gen_bg']
+                    new_mouse.available_from = datetime.today().date()
+                    new_mouse.available_to   = datetime.today().date() + timedelta(days=14)
+                    new_mouse.licence_number = mouse[0]['licence_number']
+                    if "§11" in mouse[0]['licence_number']:
+                        new_mouse.licence_paragraph11 = True
+                    new_mouse.day_of_birth   = mouse[0]['dateborn']
+                    new_mouse.medical_condition = "" # Seems not possible with API
+                    new_mouse.comment        = wrequest['description']
+                    mutations                = mouse[0]['mutations']
+                    mutation_string          = ""
+                    for mutation in mutations:
+                        if mutation['mutationgrade']:
+                            mutation_string = + mutation['mutationname'] + ' ' + mutation['mutationgrade'] + ';'
+                        else:
+                            mutation_string = + mutation['mutationname'] + ';'
+                    new_mouse.mutations = mutation_string
+                    try:
+                        new_mouse.location       = Location.objects.get(name=mouse[0]['building_name'])
+                    except:
+                        new_location = Location()
+                        new_location.name = mouse[0]['building_name']
+                        new_location.save()
+                        new_mouse.location       = Location.objects.get(name=mouse[0]['building_name'])
+                    new_mouse.line           = mouse[0]['strain_name']
+                    try:        
+                        new_mouse.responsible_person = Person.objects.get(name=mouse[0]['responsible_fullname'])
+                    except:
+                        new_person = Person()
+                        new_person.name = mouse[0]['responsible_fullname']
+                        new_person.email = "" # seems not possible with API
+                        new_person.responsible_for_lab = Lab.objects.get(name="False")
+                        new_person.save()
+                        new_mouse.responsible_person = Person.objects.get(name=mouse[0]['responsible_fullname'])
+                        ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
+                        send_mail("AniShare neue Person", 'Neue Person in AniShare {}'.format(new_person.name), ADMIN_EMAIL, [ADMIN_EMAIL])
+                    #new_mouse.added_by       = User.objects.get(username='fmonheim')
+                    if mouse[0]['sex'] == '?':
+                        new_mouse.sex = 'u'
+                    else:
+                        new_mouse.sex = mouse[0]['sex']
+                    try:
+                        #new_mouse.save()
+                        count_animals_imported = count_animals_imported + 1
+                        logger.debug('{}: Mouse with id {} has been imported by Script.'.format(datetime.now(), mouse[0]['eartag_or_id']))
+                    except BaseException as e: 
+                        error = 1
+                        ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
+                        send_mail("AniShare Importscriptfehler", 'Fehler beim Mouseimport von Maus {} mit Fehler {} in Zeile {}'.format(mouse[0]['eartag_or_id'], e,sys.exc_info()[2].tb_lineno ), ADMIN_EMAIL, [ADMIN_EMAIL])
+            # Import pups #
+
+
             incidentlist = WIncident.objects.using(mousedb).all().filter(incidentclass=22).filter(status=2)
             for incident in incidentlist:
                 if incident.duedate.date() != datetime.today().date():
@@ -108,6 +206,8 @@ class Job(HourlyJob):
                         new_mouse.available_from = datetime.today().date()
                         new_mouse.available_to   = datetime.today().date() + timedelta(days=14)
                         new_mouse.licence_number = dataset.licence
+                        if "§11" in dataset.licence:
+                            new_mouse.licence_paragraph11 = True
                         new_mouse.day_of_birth   = dataset.dob
                         new_mouse.medical_condition = dataset.medical_condition
                         new_mouse.comment        = incident.incidentdescription
@@ -199,6 +299,8 @@ class Job(HourlyJob):
                         new_pup.available_from = datetime.today().date()
                         new_pup.available_to   = datetime.today().date() + timedelta(days=7)
                         new_pup.licence_number = dataset.licence
+                        if "§11" in dataset.licence:
+                            new_mouse.licence_paragraph11 = True
                         new_pup.day_of_birth   = dataset.dob
                         new_pup.medical_condition = dataset.medical_condition
                         new_pup.comment        = incident.incidentdescription
@@ -252,23 +354,29 @@ class Job(HourlyJob):
                         #send_mail("AniShare Importscriptfehler", '{}: Fehler beim Pupimport von Pup {} mit Fehler {} '.format(mousedb, dataset.eartag, Exception), ADMIN_EMAIL, [ADMIN_EMAIL])   
 
                 if (error == 0 and count_animals_deferred > 0 and count_animals_imported == 0):
-                    incident_write = WIncident_write.objects.using(mousedb_write).get(incidentid=incident.incidentid)
-                    incident_write.status = 6 # Deferred
-                    incident_write.save(using=mousedb_write) 
-                    logger.debug('{}: Incident status {} has been changed to deferred.'.format(datetime.now(), incident.incidentid))
-                    send_mail("AniShare: AddToAniShare request set to deferred", 'You created a PyRAT AddToAniShare request with the ID {} but the import process failed and the request is set to deferred. Please check this work request.'.format(incident.incidentid), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])           
+                    #incident_write = WIncident_write.objects.using(mousedb_write).get(incidentid=incident.incidentid)
+                    #incident_write.status = 6 # Deferred
+                    #incident_write.save(using=mousedb_write) 
+                    URL = join(PYRAT_API_URL,'workrequests',str(incident.incidentid))
+                    r = requests.patch(URL,auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD), data ='{"status_id":6}')
+                    if r.status_code != 200:
+                        send_mail("AniShare: API request failed", 'Following request failed: {}'.format(r.content), ADMIN_EMAIL, [ADMIN_EMAIL])   
+                    else:
+                        logger.debug('{}: Incident status {} has been changed to deferred.'.format(datetime.now(), incident.incidentid))
+                        send_mail("AniShare: AddToAniShare request set to deferred", 'You created a PyRAT AddToAniShare request with the ID {} but the import process failed and the request is set to deferred. Please check this work request.'.format(incident.incidentid), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])           
                 elif (error == 0 and count_animals_deferred == 0):
-                    incident_write = WIncident_write.objects.using(mousedb_write).get(incidentid=incident.incidentid)
-                    incident_write.status = 5 # Added to AniShare
+                    #incident_write = WIncident_write.objects.using(mousedb_write).get(incidentid=incident.incidentid)
+                    #incident_write.status = 5 # Added to AniShare
                     URL = join(PYRAT_API_URL,'workrequests',str(incident.incidentid))
                     r = requests.patch(URL,auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD), data ='{"status_id":5}')
-                    print(r.content)
-                    logger.debug('{}: Incident status {} has been changed to 5. Request content:'.format(datetime.now(), incident.incidentid, r.content))
+                    if r.status_code != 200:
+                        send_mail("AniShare: API request failed", 'Following request failed: {}'.format(r.content), ADMIN_EMAIL, [ADMIN_EMAIL])  
+                    else:                             
+                        logger.debug('{}: Incident status {} has been changed to 5. Request content:'.format(datetime.now(), incident.incidentid, r.content))
                     #incident_write.save(using=mousedb_write)
-                    logger.debug('{}: Incident status {} has been changed to 5.'.format(datetime.now(), incident.incidentid))
-                    URL = join(PYRAT_API_URL,'workrequests',str(incident.incidentid),'comments')
-                    r = requests.post(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD), data ='{"comment":"AniShare: Request status changed to Added to Anishare"}')
-                    print(r.content)
+                    #logger.debug('{}: Incident status {} has been changed to 5.'.format(datetime.now(), incident.incidentid))
+                    #URL = join(PYRAT_API_URL,'workrequests',str(incident.incidentid),'comments')
+                    #r = requests.post(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD), data ='{"comment":"AniShare: Request status changed to Added to Anishare"}')
                     #new_comment = WIncidentcomment() 
                     #new_comment.incidentid = incident
                     #new_comment.comment = 'AniShare: Request status changed to Added to Anishare'

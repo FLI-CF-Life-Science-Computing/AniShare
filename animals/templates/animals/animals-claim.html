@@ -6,14 +6,18 @@
 <div class="alert alert-info" role="alert">
     Dear <b>{{request.user.first_name}} {{request.user.last_name}}</b>, do you really want to claim the following animals for yourself?<br/>
 </div>
+{% if  licenseWarning == True %}
+<div class="alert alert-secondary" role="alert">
+    <b>Attention:</b> You are going to claim an animal from an approved animal experiment (incl. charged lines). Please contact the Animal Welfare Office if you can use the animals.<br/>
+</div>
+{% endif %}
 
     <form action="/animals/send_email_animals" method="POST" style="margin:auto; text-align: center;">{% csrf_token %}
             <table class="table table-bordered table-hover table-striped tablesorter">
                 <thead>
                 <tr>
-                  <th class="header"> ID <i class="icon-sort"></i></th>
-                  <th class="header"> # <i class="icon-sort"></i></th>
                   <th class="header"> Type <i class="icon-sort"></i></th>
+                  <th class="header"> # <i class="icon-sort"></i></th>
                   <th class="header"> Sex<i class="icon-sort"></i></th>
                   <th class="header"> Entry Date<i class="icon-sort"></i></th>
                   <th class="header"> Date of Birth <i class="icon-sort"></i></th>
@@ -23,7 +27,7 @@
                   <th class="header"> Line <i class="icon-sort"></i></th>
                   <th class="header"> Mutations <i class="icon-sort"></i></th>
                   <th class="header"> Location <i class="icon-sort"></i></th>
-                  <th class="header"> License# <i class="icon-sort"></i></th>
+                  <th class="header"> License <i class="icon-sort"></i></th>
                   <th class="header"> ext. Info<i class="icon-sort"></i></th>
                   <th class="header"> Comments <i class="icon-sort"></i></th>
                   <th class="header"> Resp. Person <i class="icon-sort"></i></th>
@@ -34,9 +38,8 @@
                 {% for a in filter.qs %}
                     <input name="selectedAnimals" type="hidden" value="{{a.pk}}" readonly="readonly" id="select{{a.pk}}">
                     <tr {% if not a.available %}class="strikeout"{% endif %}>
-                        <td>{{a.pk}}</td>
-                        <td>{{a.amount}}</td>
                         <td>{{a.animal_type}}</td>
+                        <td>{{a.amount}}</td>
                         <td>{% if a.get_sex_display == 'female' %}
                             <i class="fas fa-venus" style="color:#F77; font-size:13pt;"></i>
                             {% elif a.get_sex_display == 'male' %}

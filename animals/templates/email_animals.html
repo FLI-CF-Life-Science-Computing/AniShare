@@ -21,6 +21,11 @@
         <p> </p>
         <p>{{ email }} claimed following animals: </p>
     </div>
+    {% if  licenseWarning == True %}
+    <div class="alert alert-secondary" role="alert">
+        <b>Attention:</b> You are going to claim an animal from an approved animal experiment (incl. charged lines). Please contact the Animal Welfare Office if you can use the animals.<br/>
+    </div>
+    {% endif %}
     <table cellspacing="0" cellpadding="0" border="0" width="100%">
         <tr>
             <td class="navbar navbar-inverse" align="center">

@@ -274,12 +274,12 @@ class AnimalForm(forms.ModelForm):
             fields = ('amount', 'animal_type', 'fish_specie','day_of_birth',
                     'available_from', 'available_to', 'sex', 'database_id',
                     'lab_id', 'line', 'location', 'responsible_person', 'responsible_person2',
-                    'licence_number', 'genetic_background','mutations','medical_condition', 'comment', 'new_owner')
+                    'licence_number', 'genetic_background','mutations','medical_condition', 'comment', 'new_owner',  'licence_paragraph11',)
         else:
             fields = ('amount', 'animal_type', 'fish_specie','day_of_birth',
                     'available_from', 'available_to', 'sex', 'database_id',
                     'lab_id', 'line', 'location', 'responsible_person', 'responsible_person2',
-                    'licence_number', 'genetic_background','mutations','medical_condition','comment', 'new_owner',)
+                    'licence_number', 'genetic_background','mutations','medical_condition','comment', 'new_owner','licence_paragraph11',)
     def clean(self):
         available_from = self.cleaned_data.get('available_from')
         available_to = self.cleaned_data.get('available_to')
@@ -410,7 +410,7 @@ class AnimalAdmin(ImportExportMixin, admin.ModelAdmin):
     resource_class = AnimalHelmholtzResource
     list_display = ('id','animal_type','database_id', 'lab_id','sex', 'entry_date', 'day_of_birth', 'age',  'available_from',
                     'available_to', 'line', 'mutations', 'location', 'licence_number',
-                    'responsible_persons', 'new_owner')
+                    'responsible_persons', 'new_owner',)
     list_display_links = ('id','animal_type','sex','entry_date', 'day_of_birth', 'age',
                           'available_from', 'available_to', 'line', 'mutations', 'database_id',
                           'location', 'licence_number', 'lab_id','responsible_persons',

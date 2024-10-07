@@ -4,12 +4,16 @@
 <div class="alert alert-info" role="alert">
     Dear <b>{{request.user.first_name}} {{request.user.last_name}}</b>, do you really want to claim the following animal for yourself?<br/>
 </div>
+{% if  licenseWarning == True %}
+<div class="alert alert-secondary" role="alert">
+  <b>Attention:</b> You are going to claim an animal from an approved animal experiment (incl. charged lines). Please contact the Animal Welfare Office if you can use the animals.<br/>
+</div>
+{% endif %}
             <table class="table table-bordered table-hover table-striped tablesorter">
                 <thead>
                 <tr>
-                  <th class="header"> ID <i class="icon-sort"></i></th>
-                  <th class="header"> # <i class="icon-sort"></i></th>
                   <th class="header"> Type <i class="icon-sort"></i></th>
+                  <th class="header"> # <i class="icon-sort"></i></th>
                   <th class="header"> Sex<i class="icon-sort"></i></th>
                   <th class="header"> Entry Date<i class="icon-sort"></i></th>
                   <th class="header"> Date of Birth <i class="icon-sort"></i></th>
@@ -29,9 +33,8 @@
             </thead>
             <tbody>
                     <tr {% if not object.available %}class="strikeout"{% endif %}>
-                        <td>{{object.pk}}</td>
-                        <td>{{object.amount}}</td>
                         <td>{{object.animal_type}}</td>
+                        <td>{{object.amount}}</td>
                         <td>{% if object.get_sex_display == 'female' %}
                             <i class="fas fa-venus" style="color:#F77; font-size:13pt;"></i>
                             {% elif object.get_sex_display == 'male' %}
@@ -70,9 +73,9 @@
   {% if object.amount > 1 %}out of 
     <input name="max_count" type="text" style="width:40px;" value="{{object.amount}}" readonly="readonly"> 
   {% endif %}
-  animal{{object.amount|pluralize}}
-  from entry <input name="pk" type="text" style="width:60px;" value="{{object.id}}" readonly="readonly">.<br/>
+  animal{{object.amount|pluralize}}<br/>
   They will make the necessary adjustments in the database. <br/>
+  <input  type="hidden" name="pk" type="text" value="{{object.id}}">
   <input type="submit" name='claim' value="Yes, I want to claim this!">
 </form>
 

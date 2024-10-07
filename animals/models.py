@@ -151,6 +151,7 @@ class Animal(models.Model):
     grade2 = models.CharField(max_length=10,blank=True, null=True,help_text='Grade 2')
     grade3 = models.CharField(max_length=10,blank=True, null=True ,help_text='Grade 3')
     grade4 = models.CharField(max_length=10,blank=True, null=True ,help_text='Grade 4')
+    licence_paragraph11 = models.BooleanField(default=False,null=False, blank=False, verbose_name='§11 License') 
     licence_number = models.CharField(max_length=200, verbose_name='License number')
     responsible_person = models.ForeignKey(Person, related_name='rperson', on_delete=models.CASCADE, help_text='Person who is responsible in the lab for dealing with the animals')
     responsible_person2 = models.ForeignKey(Person, related_name='rperson2', null=True, blank=True, on_delete=models.CASCADE, 
@@ -596,6 +597,9 @@ class WIncident(models.Model):
     duedate = models.DateTimeField(blank=True, null=True, db_column='duedate')
     sacrifice_reason = models.IntegerField(blank=True, null=True, db_column='sacrifice_reason_id') 
     sacrifice_method = models.IntegerField(blank=True, null=True, db_column='sacrifice_method_id') 
+    licence = models.IntegerField(blank=True, null=True, db_column='licence_id')
+    classification = models.IntegerField(blank=True, null=True, db_column='classification_id')
+    severity_level = models.IntegerField(blank=True, null=True, db_column='severity_level_id')
     """
     wr_building = models.ForeignKey('LocationBuildings', models.DO_NOTHING, blank=True, null=True)
     wr_area = models.ForeignKey('LocationAreas', models.DO_NOTHING, blank=True, null=True)
@@ -642,6 +646,9 @@ class WIncident_write(models.Model):
     #status = models.ForeignKey('WIncidentstatus', models.DO_NOTHING, db_column='status')
     duedate = models.DateTimeField(blank=True, null=True, db_column='duedate')
     sacrifice_reason = models.IntegerField(blank=True, null=True, db_column='sacrifice_reason_id') 
+    licence = models.IntegerField(blank=True, null=True, db_column='licence_id')
+    classification = models.IntegerField(blank=True, null=True, db_column='classification_id')
+    severity_level = models.IntegerField(blank=True, null=True, db_column='severity_level_id')
     #sacrifice_method = models.IntegerField(blank=True, null=True, db_column='sacrifice_method_id') 
     behavior = models.IntegerField(blank=True, null=True, db_column='behavior_id') 
     last_modified = models.DateTimeField(null=False, db_column='last_modified')

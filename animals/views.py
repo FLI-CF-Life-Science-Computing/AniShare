@@ -38,6 +38,10 @@ from .importscript import runimport
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.utils.html import strip_tags
 from .forms import addAnimalForm, addOrganForm, searchRequestAnimalForm
+import requests
+from os.path import join
+import json
+
 
 logger = logging.getLogger('mylogger')
 
@@ -87,7 +91,12 @@ def claim(request, primary_key):
               or 404 if animal not found
     """
     animal = get_object_or_404(Animal, pk=primary_key)
-    return render(request, 'animals/animal-claim.html', {'object': animal})
+    licenseWarning = False
+    experimentLicenseWarning = getattr(settings, "EXPERIMENT_LICENSE_WARNING", False)
+    if experimentLicenseWarning:
+        if not animal.licence_paragraph11:
+            licenseWarning = True
+    return render(request, 'animals/animal-claim.html', {'object': animal, 'licenseWarning':licenseWarning })
 
 @login_required
 def claim_organ(request, primary_key):
@@ -193,7 +202,7 @@ def send_email_animal(request):
     :param pk: primary_key of the animal(s) to be claimed
     :param count: how many animals are being claimed
     """
-
+    licenseWarning = False
     email = request.POST['email']
     primary_key = request.POST['pk']
     count = request.POST['count']
@@ -205,21 +214,30 @@ def send_email_animal(request):
         messages.add_message(request, messages.ERROR, 'You cannot claim more animals then are available!')
         raise forms.ValidationError("You cannot claim more animals then are available!")
     animal.amount = count
-    animal.save()  # Save the animal with the new owner
+    receiver = []
+    receiver.append(email)
+    receiver.append(animal.responsible_person.email)
+    if animal.responsible_person2: # send mail to the first and second responsible person
+        receiver.append(animal.responsible_person2.email)
+    experimentLicenseWarning = getattr(settings, "EXPERIMENT_LICENSE_WARNING", False)
+    if experimentLicenseWarning:
+        if not animal.licence_paragraph11:
+            licenseWarning = True
+            awo = getattr(settings, "AWO_EMAIL_ADDRESS", False)
+            if awo:
+                receiver.append(awo)
     messages.add_message(request, messages.SUCCESS,
                          'The entry {} has been claimed by {}.'.format(animal.pk, animal.new_owner))
     logger.info('{} The entry {} has been claimed by {}.'.format(datetime.now(),animal.pk, animal.new_owner))
     subject = "User {} claimed animal {} in AniShare".format(email, primary_key)
-    message = render_to_string('email.html', {'email': email, 'object': animal, 'now': datetime.now()})
-    if animal.responsible_person2 is None:
-        send_mail(subject, message, email, [animal.responsible_person.email, email],html_message=message)
-    else:
-        send_mail(subject, message, email, [animal.responsible_person.email, animal.responsible_person2.email, email],html_message=message)
+    message = render_to_string('email.html', {'email': email, 'object': animal, 'now': datetime.now(), 'licenseWarning':licenseWarning })
+    send_mail(subject, message, email, receiver,html_message=message)
     #msg = EmailMultiAlternatives(subject, message, email, [animal.responsible_person.email, email],html_message=message)
     #msg.attach_alternative(message, "text/html")
     #msg.content_subtype = "html"
     #msg.mixed_subtype = 'related'
     #msg.send()
+    animal.save()  # Save the animal with the new owner
     if amount_difference > 0:  # If there were multiple animals, save the remainder of animals as a new object
         animal.pk = None
         animal.amount = amount_difference
@@ -721,6 +739,7 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
     ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
     TIMEDIFF = getattr(settings, "TIMEDIFF", 2)
     LINES_PROHIBIT_SACRIFICE = getattr(settings, "LINES_PROHIBIT_SACRIFICE", None)
+
     try:
         sIncidentToken = SacrificeIncidentToken.objects.get(urltoken = token)
         try:
@@ -857,6 +876,208 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
         return render(request, 'animals/confirmrequest.html', {'message': message,'confirmed':confirmed})
     return render(request, 'animals/confirmrequest.html', {'message': message,'confirmed':confirmed})
 
+
+@login_required
+def ConfirmRequestAPI(request, token):### Change Status from a sacrifice work request to the status open
+    message = "URL is wrong. Please check your URL or get in contact with the administrator" 
+    confirmed = 0
+    user_confirmed = 0
+    ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
+    TIMEDIFF = getattr(settings, "TIMEDIFF", 2)
+    LINES_PROHIBIT_SACRIFICE = getattr(settings, "LINES_PROHIBIT_SACRIFICE", None)
+
+
+    PYRAT_API_URL = getattr(settings, "PYRAT_API_URL", None)
+    PYRAT_CLIENT_ID = getattr(settings, "PYRAT_CLIENT_ID", None)
+    PYRAT_CLIENT_PASSWORD = getattr(settings, "PYRAT_CLIENT_PASSWORD", None)
+
+    if (PYRAT_API_URL == None or PYRAT_CLIENT_ID == None or PYRAT_CLIENT_PASSWORD == None):
+        logger.debug('Die Verbindungsparamater zu PyRAT (PYRAT_API_URL, PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD) müssen noch in der local settings Datei gesetzt werden')
+        send_mail("AniShare ConfirmRequest", 'Die Verbindungsparamater zu PyRAT (PYRAT_API_URL, PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD) müssen gesetzt werden', ADMIN_EMAIL, [ADMIN_EMAIL])
+        message = "Es ist keine Verbindung zu PyRAT möglich. Der Administrator wurde informiert. Bitte versuchen Sie es später."
+        return render(request, 'animals/confirmrequest.html', {'message': message,'confirmed':confirmed})
+    
+    try:
+        URL = join(PYRAT_API_URL,'version')
+        r = requests.get(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD))
+        r_status = r.status_code
+        if r_status != 200:
+            logger.debug('Es konnte keine Verbindung zu der PyRAT API aufgebaut werden. Fehler {}'.format(r_status))
+            send_mail("AniShare ConfirmRequest", 'Es konnte keine Verbindung zu der PyRAT API aufgebaut werden. Fehler {} wurde zurück gegeben'.format(r_status), ADMIN_EMAIL, [ADMIN_EMAIL])    
+            message = "Es ist keine Verbindung zu PyRAT möglich. Der Administrator wurde informiert. Bitte versuchen Sie es später."
+            return render(request, 'animals/confirmrequest.html', {'message': message,'confirmed':confirmed})
+    except BaseException as e: 
+        ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
+        message = "Es ist keine Verbindung zu PyRAT möglich. Der Administrator wurde informiert. Bitte versuchen Sie es später."
+        send_mail("AniShare ConfirmRequest", 'Fehler bei der Überprüfung der PyRAT API {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
+        return render(request, 'animals/confirmrequest.html', {'message': message,'confirmed':confirmed})
+
+    try:
+        sIncidentToken = SacrificeIncidentToken.objects.get(urltoken = token)
+        try:
+            #sIncidentToken = SacrificeIncidentToken.objects.get(urltoken = token)
+            if sIncidentToken:
+                for u in range(len(settings.USER_MAPPING)): # used if the username differs from anishare and pyrat
+                    if request.user.username == settings.USER_MAPPING[u][0]:
+                        if settings.USER_MAPPING[u][1] == sIncidentToken.initiator:
+                            user_confirmed = 1 
+                if ((request.user.username == sIncidentToken.initiator) or (user_confirmed == 1)):
+                    if sIncidentToken.confirmed:
+                        message = "Request is already created. A second time is not possible"
+                    elif (sIncidentToken.created + timedelta(days=15) < datetime.now(sIncidentToken.created.tzinfo)): # Request expired
+                        message = "The Link is expired because the AddToAniShare request has expired more than 14 days ago. You can create a sacrifice request directly inside PyRAT."
+                    else:
+                        MOUSEDB= getattr(settings, "MOUSEDB", None)
+                        previous_incident = WIncident.objects.using(MOUSEDB).get(incidentid = sIncidentToken.incidentid) 
+                        animallist = Animal.objects.filter(pyrat_incidentid = previous_incident.incidentid)
+                        
+                        # Check if a mouse is claimed
+                        i = 0
+                        for animal in animallist:
+                            if animal.new_owner:
+                                animallist=animallist.exclude(pk=animal.pk)
+                            if animal.line in LINES_PROHIBIT_SACRIFICE:
+                                animallist = animallist.exclude(pk=animal.pk)
+                            i = i + 1
+                        if len(animallist) == 0:
+                            message = "All mice are claimed"
+                            return render(request, 'animals/confirmrequest.html', {'message': message,'confirmed':confirmed})
+
+                        # Check if all mice are still alive
+                        i = 0
+                        for animal in animallist:
+                            if (animal.animal_type == 'mouse'):
+                                try:
+                                    if not Mouse.objects.using(MOUSEDB).filter(id = animal.mouse_id).exists():
+                                        animallist=animallist.exclude(pk=animal.pk)
+                                except BaseException as e:     
+                                    send_mail("AniShare ConfirmRequest", 'Fehler {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL,request.user.email])
+                                    animallist=animallist.exclude(pk=animal.pk)
+                            if (animal.animal_type == 'pup'):
+                                try:
+                                    if not Pup.objects.using(MOUSEDB).filter(id = animal.pup_id).exists():
+                                        send_mail("AniShare ConfirmRequest", 'Pup {} nicht vorhanden. Siehe AddToAniShare Auftrag {}'.format(animal.pup_id,previous_incident.incidentid), ADMIN_EMAIL, [ADMIN_EMAIL,request.user.email])
+                                        # Pup könnte bereits zu einem erwachsenen Tier übergangen sein, Änderung muss kontrolliert werden
+                                        if Mouse.objects.using(MOUSEDB).filter(id = animal.animalid).exists():
+                                            v_mouse = Mouse.objects.using(MOUSEDB).get(id = animal.animalid)
+                                        else:
+                                            animallist=animallist.exclude(pk=animal.pk)
+                                            continue
+                                        if Animal.objects.filter(database_id=v_mouse.eartag).exists():
+                                            animal = Animal.objects.get(database_id=v_mouse.eartag)
+                                            animal.mouse_id = v_mouse.id
+                                            animal.save() # Save new animal_id (id changed because pup is now an adult)
+                                        else:
+                                            animallist=animallist.exclude(pk=animal.pk)
+                                            continue 
+                                        #animallist=animallist.exclude(pk=animal.pk)
+                                except:
+                                    animallist=animallist.exclude(pk=animal.pk)
+                        if len(animallist) > 0:
+                            confirmed = 1
+                        else:
+                            message = "There is no living mouse or pup to create a sacrifice request"
+                            return render(request, 'animals/confirmrequest.html', {'message': message,'confirmed':confirmed})
+                        
+                        selected_animal_ids = []
+                        selected_pup_ids    = []
+                        for animal in animallist:
+                            if (animal.animal_type == 'mouse'):
+                                selected_animal_ids.append(animal.mouse_id)
+                            if (animal.animal_type == 'pup'):
+                                selected_pup_ids.append(animal.pup_id) 
+
+                        new_sacrifice_incident = {\
+                            "workrequest_class_id":1,
+                            "workrequest_description":f"{previous_incident.incidentdescription}",
+                            "owner_id":f"{previous_incident.owner.id}",
+                            "responsible_id":f"{previous_incident.responsible.id}",
+                            "due_date": "{}".format(datetime.now() + timedelta(hours=TIMEDIFF) + timedelta(days=3)),
+                            "behavior_id":4,
+                            "priority":"medium",
+                            "selected_animal_ids": selected_animal_ids,
+                            "selected_pup_ids": selected_pup_ids,
+                            }
+                        new_sacrifice_incident ='{}'.format(json.dumps(new_sacrifice_incident))
+                        URL = join(PYRAT_API_URL,'workrequests')
+                        r = requests.post(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD), data = new_sacrifice_incident)
+                        
+                        new_sacrifice_incident                  = WIncident_write()
+                        new_sacrifice_incident.incidentclass    = 1                         # Sacrifices
+                        new_sacrifice_incident.initiator        = previous_incident.initiator.id  # Person who create the Add to AniShare request
+                        new_sacrifice_incident.owner            = previous_incident.owner.id      # copied from the Add to AniShare request
+                        new_sacrifice_incident.responsible      = previous_incident.responsible.id # copied from the Add to AniShare request
+                        new_sacrifice_incident.sacrifice_reason = previous_incident.sacrifice_reason # copied from the Add to AniShare request
+                        new_sacrifice_incident.sacrifice_method = previous_incident.sacrifice_method # copied from the Add to AniShare request
+                        new_sacrifice_incident.incidentdescription = previous_incident.incidentdescription # copied from the Add to AniShare request
+                        new_sacrifice_incident.licence          = previous_incident.licence
+                        new_sacrifice_incident.classification   = previous_incident.classification
+                        new_sacrifice_incident.severity_level   = previous_incident.severity_level 
+
+                        new_sacrifice_incident.animal.mouse_idbehavior         = 4 # Sacrifice
+                        new_sacrifice_incident.priority         = 3 # medium
+                        new_sacrifice_incident.status           = 2 # open
+                        new_sacrifice_incident.duedate          = datetime.now() + timedelta(hours=TIMEDIFF) + timedelta(days=3)
+                        new_sacrifice_incident.approved         = 1
+                        new_sacrifice_incident.last_modified    = datetime.now() + timedelta(hours=TIMEDIFF)
+                        MOUSEDB_WRITE = getattr(settings, "MOUSEDB_WRITE", None)
+                        new_sacrifice_incident.save(using=MOUSEDB_WRITE)
+                        time.sleep(1)
+
+                        new_sacrifice_incident_tmp = WIncident.objects.using(MOUSEDB).get(incidentid=new_sacrifice_incident.incidentid) 
+                        new_comment = WIncidentcomment()
+                        new_comment.incidentid = new_sacrifice_incident_tmp
+                        new_comment.comment = 'AniShare: Request created. Previous AddToAniShare request is: {}'.format(previous_incident.incidentid)
+                        new_comment.save(using=MOUSEDB_WRITE) 
+                        new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
+                        new_comment.save(using=MOUSEDB_WRITE)
+
+                        new_comment = WIncidentcomment()
+                        new_comment.incidentid = previous_incident
+                        new_comment.comment = 'AniShare: Sacrifice request with id {} created'.format(new_sacrifice_incident.incidentid)
+                        new_comment.save(using=MOUSEDB_WRITE) 
+                        new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
+                        new_comment.save(using=MOUSEDB_WRITE)
+
+                        for animal in animallist:
+                            if (animal.animal_type == 'mouse'):
+                                try:
+                                    incident_mouse                  = WIncidentanimals_write()
+                                    incident_mouse.incidentid       = new_sacrifice_incident
+                                    incident_mouse.animalid         = animal.mouse_id
+                                    incident_mouse.perform_status   = 'pending'
+                                    incident_mouse.save(using=MOUSEDB_WRITE)
+                                except BaseException as e:
+                                    send_mail("AniShare ConfirmRequest", 'Fehler {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
+                            if (animal.animal_type == 'pup'):
+                                try:
+                                    incident_pup = WIncidentpups_write()
+                                    incident_pup.incidentid = new_sacrifice_incident
+                                    incident_pup.pupid = animal.pup_id
+                                    incident_pup.perform_status   = 'pending'
+                                    incident_pup.save(using=MOUSEDB_WRITE)
+                                except BaseException as e:
+                                    send_mail("AniShare ConfirmRequest", 'Fehler {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
+                        sIncidentToken.confirmed = datetime.now()
+                        sIncidentToken.save()   
+                        message ="Sacrifice request created with id: {}".format(new_sacrifice_incident.incidentid)
+                        confirmed = 1
+                else:
+                    message ="Sorry, you can not create this request because you are not the initiator of the previous AddToAniShare request."
+            else:
+                #not possible
+                message =""
+        except BaseException as e: 
+            send_mail("AniShare ConfirmRequest", 'Fehler {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
+            return render(request, 'animals/confirmrequest.html', {'message': message,'confirmed':confirmed})
+    except BaseException as e: 
+        # Wrong URL or token exists multiple times
+        return render(request, 'animals/confirmrequest.html', {'message': message,'confirmed':confirmed})
+    return render(request, 'animals/confirmrequest.html', {'message': message,'confirmed':confirmed})
+
+
+
+
 @login_required
 def change_history(request):
     changelist = Change.objects.all()
@@ -904,8 +1125,14 @@ def AnimalClaimView(request):
     if request.method == "POST":
         claimlist = request.POST.getlist("selected",None)
         animallist = Animal.objects.filter(pk__in = claimlist)
+        licenseWarning = False
+        experimentLicenseWarning = getattr(settings, "EXPERIMENT_LICENSE_WARNING", False)
+        if experimentLicenseWarning:
+            for animal in animallist:
+                if not animal.licence_paragraph11:
+                    licenseWarning = True
         f = AnimalFilter(request.GET, queryset=animallist)
-        return render(request, 'animals/animals-claim.html', {'filter': f})
+        return render(request, 'animals/animals-claim.html', {'filter': f, 'licenseWarning': licenseWarning})
 
 
 def send_email_animals(request):  # send a mail to the responsible persons of the claimed animals and go back to the overview site
@@ -915,7 +1142,13 @@ def send_email_animals(request):  # send a mail to the responsible persons of th
         animallist = Animal.objects.filter(pk__in = claimlist)
         last_responsible = ""
         last_responsible2 = None
-        error = 0;
+        error = 0
+        licenseWarning = False
+        experimentLicenseWarning = getattr(settings, "EXPERIMENT_LICENSE_WARNING", False)
+        if experimentLicenseWarning:
+            for animal in animallist:
+                if not animal.licence_paragraph11:
+                    licenseWarning = True
 
         for sAnimal in animallist: 
             # the loop collects in an improvable way all animals from one responsible person and send it to the person.
@@ -933,13 +1166,19 @@ def send_email_animals(request):  # send a mail to the responsible persons of th
                     break
                 subject = "User {} claimed animals in AniShare".format(email)
                 if last_responsible2 is None: # render the mail without second responsible person
-                    message = render_to_string('email_animals.html',{'email':email, 'animals':templist, 'now': datetime.now(),'responsible_person':sAnimal.responsible_person.name, 'responsible_person2':None})
+                    message = render_to_string('email_animals.html',{'email':email, 'animals':templist, 'now': datetime.now(),'responsible_person':sAnimal.responsible_person.name, 'responsible_person2':None, 'licenseWarning': licenseWarning})
                 else: # render the mail with the second responsible person
-                    message = render_to_string('email_animals.html',{'email':email, 'animals':templist, 'now': datetime.now(),'responsible_person':sAnimal.responsible_person.name, 'responsible_person2':sAnimal.responsible_person2.name})
-                if last_responsible2 is None: # send mail only to the first responsible person
-                    msg = EmailMessage(subject, message, email, [sAnimal.responsible_person.email, email])
-                else: # send mail to the first and second responsible person
-                    msg = EmailMessage(subject, message, email, [sAnimal.responsible_person.email, sAnimal.responsible_person2.email, email])
+                    message = render_to_string('email_animals.html',{'email':email, 'animals':templist, 'now': datetime.now(),'responsible_person':sAnimal.responsible_person.name, 'responsible_person2':sAnimal.responsible_person2.name, 'licenseWarning': licenseWarning})
+                receiver = []
+                receiver.append(email)
+                receiver.append(sAnimal.responsible_person.email)
+                if last_responsible2: # send mail to the first and second responsible person
+                    receiver.append(sAnimal.responsible_person2.email)
+                if licenseWarning:
+                    awo = getattr(settings, "AWO_EMAIL_ADDRESS", False)
+                    if awo:
+                        receiver.append(awo)
+                msg = EmailMessage(subject, message, email, receiver)
                 msg.content_subtype = "html"
                 msg.send()
                 if last_responsible2 is None:
