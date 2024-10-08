@@ -599,7 +599,7 @@ class WIncident(models.Model):
     sacrifice_method = models.IntegerField(blank=True, null=True, db_column='sacrifice_method_id') 
     licence = models.IntegerField(blank=True, null=True, db_column='licence_id')
     classification = models.IntegerField(blank=True, null=True, db_column='classification_id')
-    severity_level = models.IntegerField(blank=True, null=True, db_column='severity_level_id')
+    #severity_level = models.IntegerField(blank=True, null=True, db_column='severity_level_id')
     """
     wr_building = models.ForeignKey('LocationBuildings', models.DO_NOTHING, blank=True, null=True)
     wr_area = models.ForeignKey('LocationAreas', models.DO_NOTHING, blank=True, null=True)
@@ -648,7 +648,7 @@ class WIncident_write(models.Model):
     sacrifice_reason = models.IntegerField(blank=True, null=True, db_column='sacrifice_reason_id') 
     licence = models.IntegerField(blank=True, null=True, db_column='licence_id')
     classification = models.IntegerField(blank=True, null=True, db_column='classification_id')
-    severity_level = models.IntegerField(blank=True, null=True, db_column='severity_level_id')
+    #severity_level = models.IntegerField(blank=True, null=True, db_column='severity_level_id')
     #sacrifice_method = models.IntegerField(blank=True, null=True, db_column='sacrifice_method_id') 
     behavior = models.IntegerField(blank=True, null=True, db_column='behavior_id') 
     last_modified = models.DateTimeField(null=False, db_column='last_modified')
