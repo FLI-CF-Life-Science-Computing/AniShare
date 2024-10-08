@@ -728,7 +728,7 @@ def importfishtoanishare(request):
                 messages.add_message(request, messages.ERROR,'Becaus of an error the fish {} has NOT been imported. The AniShare admin is informed about the error'.format(dataset.animalnumber))
                 send_mail("AniShare Importfehler", 'Fehler beim Fishimport von Fish  {} mit Fehler {} in Zeile {}'.format(dataset.animalnumber, e,sys.exc_info()[2].tb_lineno), request.user.email, [ADMIN_EMAIL])
             i = i + 1
-    return HttpResponseRedirect('/admin/animals/animal/')
+    return HttpResponseRedirect('/')
 
 
 @login_required
