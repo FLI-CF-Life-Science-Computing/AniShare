@@ -202,7 +202,7 @@ class Job(HourlyJob):
                         new_pup.available_to   = datetime.today().date() + timedelta(days=7)
                         new_pup.licence_number = dataset.licence
                         if "§11" in dataset.licence:
-                            new_mouse.licence_paragraph11 = True
+                            new_pup.licence_paragraph11 = True
                         new_pup.medical_condition  = dataset.medical_condition
                         new_pup.day_of_birth   = dataset.dob
                         new_pup.comment        = incident.incidentdescription
