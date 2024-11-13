@@ -732,7 +732,7 @@ class SacrificeIncidentToken(models.Model):
     incidentid  = models.IntegerField(blank=False, null=False) # AddToAniShare Incident ID
     urltoken    = models.CharField(max_length=100, blank=False, null=False)
     created     = models.DateTimeField(null=False, auto_now_add=True)
-    confirmed   = models.DateTimeField(null=True)
+    confirmed   = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.initiator
