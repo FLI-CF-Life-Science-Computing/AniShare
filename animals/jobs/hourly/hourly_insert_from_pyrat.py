@@ -69,6 +69,7 @@ class Job(HourlyJob):
                                     ani_mouse.comment = ani_mouse.comment + "Ursprünglich über AddToAniShare Auftrag: {} importiert; ".format(ani_mouse.pyrat_incidentid)
                                 else:
                                     ani_mouse.comment = "Ursprünglich über AddToAniShare Auftrag: {} importiert; ".format(ani_mouse.pyrat_incidentid)
+                            ani_mouse.new_owner = ""
                             ani_mouse.pyrat_incidentid = incident.incidentid # Save the new PyRAT request id
                             ani_mouse.available_from = datetime.today().date()
                             ani_mouse.available_to   = datetime.today().date() + timedelta(days=14)
@@ -168,6 +169,7 @@ class Job(HourlyJob):
                             ani_mouse = Animal.objects.get(pup_id=pyratpup.pupid)  # Get AniShare mouse that has already been imported
                             if ani_mouse.pyrat_incidentid: # Save the original PyRAT request id using the comment field
                                 ani_mouse.comment = ani_mouse.comment + "Ursprünglich über AddToAniShare Auftrag: {} importiert;".format(ani_mouse.pyrat_incidentid)
+                            ani_mouse.new_owner =""
                             ani_mouse.pyrat_incidentid = incident.incidentid # Save the new PyRAT request id
                             ani_mouse.available_from = datetime.today().date()
                             ani_mouse.available_to   = datetime.today().date() + timedelta(days=7)
