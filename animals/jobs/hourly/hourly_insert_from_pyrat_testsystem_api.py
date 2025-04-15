@@ -49,6 +49,102 @@ class Job(HourlyJob):
 
         try:
             today = datetime.today().date()
+            URL = join(PYRAT_API_URL,'workrequests?k=id&k=description&k=involved_animals_pups_cages&o=0&l=100&status_id=2&unresolved=true&class_id=22&due_date_from={}&due_date_to={}'.format(today,today))
+            r = requests.get(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD))
+            if r.status_code != 200:
+                logger.debug('Fehler bei der Abfrage der Arbeitsaufträge {}'.format(r_status))
+                send_mail("AniShare Importscriptfehler hourly_insert_from_pyrat.py", 'Es konnte keine Arbeitsaufträge abgefragt werden. Fehler {} wurde zurück gegeben'.format(r_status), ADMIN_EMAIL, [ADMIN_EMAIL])    
+                management.call_command("clearsessions")
+                return()
+            data = r.json()
+            for wrequest in data:
+                count_animals_deferred = 0
+                count_animals_imported = 0
+                animals = wrequest['involved_animals_pups_cages']['animals']
+                for animal in animals:
+                    if Animal.objects.filter(mouse_id=animal['id']).exists(): # Check if mouse has already been imported
+                        ani_mouse = Animal.objects.get(mouse_id=animal['id'])  # Get AniShare mouse that has already been imported
+                        if ani_mouse.pyrat_incidentid: # Save the original PyRAT request id using the comment field
+                            if ani_mouse.comment:
+                                    ani_mouse.comment = ani_mouse.comment + "Ursprünglich über AddToAniShare Auftrag: {} importiert; ".format(ani_mouse.pyrat_incidentid)
+                            else:
+                                ani_mouse.comment = "Ursprünglich über AddToAniShare Auftrag: {} importiert; ".format(ani_mouse.pyrat_incidentid)
+                        ani_mouse.new_owner = ""
+                        ani_mouse.pyrat_incidentid = wrequest['id'] # Save the new PyRAT request id
+                        ani_mouse.available_from = datetime.today().date()
+                        ani_mouse.available_to   = datetime.today().date() + timedelta(days=14)
+                        ani_mouse.save()
+                        continue
+                    new_mouse = Animal()
+                    new_mouse.animal_type    = "mouse"
+
+                    URL = join(PYRAT_API_URL,'animals?k=animalid&k=sex&k=gen_bg&k=strain_name&k=building_name&k=mutations&k=labid&k=dateborn&k=eartag_or_id&k=licence_number&animalid={}'.format(animal['id']))
+                    r = requests.get(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD))
+                    mouse = r.json()
+                    if mouse[0]['licence_number'] =="": # mouse has no licence
+                        count_animals_deferred = count_animals_deferred + 1
+                        send_mail("AniShare: Mouse without license", 'You created a work request with the ID {} to add the mouse {} to AniShare. It is not possible to import a mouse without a license. '.format(wrequest['id'], mouse[0]['eartag_or_id']), ADMIN_EMAIL, [ADMIN_EMAIL])
+                        URL = join(PYRAT_API_URL,'workrequests/{}/comments'.format(wrequest['id']))
+                        comment = {"comment": "Mouse {} without licence can not be imported".format(mouse[0]['eartag_or_id'])}
+                        comment = json.dumps(comment)
+                        r = requests.post(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD),data=comment)
+                        continue
+                    new_mouse.database_id    = mouse[0]['eartag_or_id']
+                    new_mouse.lab_id         = mouse[0]['labid']
+                    new_mouse.amount         = 1
+                    new_mouse.pyrat_incidentid = wrequest['id']
+                    new_mouse.genetic_background  = mouse[0]['gen_bg']
+                    new_mouse.available_from = datetime.today().date()
+                    new_mouse.available_to   = datetime.today().date() + timedelta(days=14)
+                    new_mouse.licence_number = mouse[0]['licence_number']
+                    if "§11" in mouse[0]['licence_number']:
+                        new_mouse.licence_paragraph11 = True
+                    new_mouse.day_of_birth   = mouse[0]['dateborn']
+                    new_mouse.medical_condition = "" # Seems not possible with API
+                    new_mouse.comment        = wrequest['description']
+                    mutations                = mouse[0]['mutations']
+                    mutation_string          = ""
+                    for mutation in mutations:
+                        if mutation['mutationgrade']:
+                            mutation_string = + mutation['mutationname'] + ' ' + mutation['mutationgrade'] + ';'
+                        else:
+                            mutation_string = + mutation['mutationname'] + ';'
+                    new_mouse.mutations = mutation_string
+                    try:
+                        new_mouse.location       = Location.objects.get(name=mouse[0]['building_name'])
+                    except:
+                        new_location = Location()
+                        new_location.name = mouse[0]['building_name']
+                        new_location.save()
+                        new_mouse.location       = Location.objects.get(name=mouse[0]['building_name'])
+                    new_mouse.line           = mouse[0]['strain_name']
+                    try:        
+                        new_mouse.responsible_person = Person.objects.get(name=mouse[0]['responsible_fullname'])
+                    except:
+                        new_person = Person()
+                        new_person.name = mouse[0]['responsible_fullname']
+                        new_person.email = "" # seems not possible with API
+                        new_person.responsible_for_lab = Lab.objects.get(name="False")
+                        new_person.save()
+                        new_mouse.responsible_person = Person.objects.get(name=mouse[0]['responsible_fullname'])
+                        ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
+                        send_mail("AniShare neue Person", 'Neue Person in AniShare {}'.format(new_person.name), ADMIN_EMAIL, [ADMIN_EMAIL])
+                    #new_mouse.added_by       = User.objects.get(username='fmonheim')
+                    if mouse[0]['sex'] == '?':
+                        new_mouse.sex = 'u'
+                    else:
+                        new_mouse.sex = mouse[0]['sex']
+                    try:
+                        #new_mouse.save()
+                        count_animals_imported = count_animals_imported + 1
+                        logger.debug('{}: Mouse with id {} has been imported by Script.'.format(datetime.now(), mouse[0]['eartag_or_id']))
+                    except BaseException as e: 
+                        error = 1
+                        ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
+                        send_mail("AniShare Importscriptfehler", 'Fehler beim Mouseimport von Maus {} mit Fehler {} in Zeile {}'.format(mouse[0]['eartag_or_id'], e,sys.exc_info()[2].tb_lineno ), ADMIN_EMAIL, [ADMIN_EMAIL])
+
+                        # Import pups #
+
             incidentlist = WIncident.objects.using(mousedb).all().filter(incidentclass=22).filter(status=2)
             for incident in incidentlist:
                 if incident.duedate.date() != datetime.today().date():

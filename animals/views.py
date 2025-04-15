@@ -647,7 +647,9 @@ def tickatlabfishlist(request):
 def importfish_view(request):
     if request.method == "POST":
         importlist = request.POST.getlist("selected",None)
+        logger.debug('{}:importlist {}'.format(datetime.now(), importlist))
         fishlist = Fish.objects.using('fishdb').filter(id__in = importlist).order_by('id')
+        logger.debug('{}:fishlist {}'.format(datetime.now(), fishlist))
         f = FishFilter(request.GET, queryset=fishlist)
         persons = Person.objects.all().order_by('name')
         return render(request, 'animals/import-fish.html', {'filter': f, 'persons':persons})
@@ -660,6 +662,7 @@ def importfishtoanishare(request):
         availabletolist = request.POST.getlist("availableto",None)
         responsible_person2 = request.POST.getlist("responsible_person2",None)
         fishlist = Fish.objects.using('fishdb').filter(id__in = fishidlist)
+        logger.debug('{}:fishlist2 {}'.format(datetime.now(), fishlist))
         i=0
         for dataset in fishlist:
             try:
