@@ -818,6 +818,10 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
                         new_sacrifice_incident.sacrifice_reason = previous_incident.sacrifice_reason # copied from the Add to AniShare request
                         new_sacrifice_incident.sacrifice_method = previous_incident.sacrifice_method # copied from the Add to AniShare request
                         new_sacrifice_incident.incidentdescription = previous_incident.incidentdescription # copied from the Add to AniShare request
+                        new_sacrifice_incident.wr_area         = previous_incident.wr_area # copied from the Add to AniShare request
+                        new_sacrifice_incident.wr_building      = previous_incident.wr_building # copied from the Add to AniShare request
+                        new_sacrifice_incident.wr_room          = previous_incident.wr_room # copied from the Add to AniShare request
+                        new_sacrifice_incident.wr_rack          = previous_incident.wr_rack # copied from the Add to AniShare request
                         new_sacrifice_incident.behavior         = 4 # Sacrifice
                         new_sacrifice_incident.priority         = 3 # medium
                         new_sacrifice_incident.status           = 2 # open
@@ -1013,6 +1017,10 @@ def ConfirmRequestAPI(request, token):### Change Status from a sacrifice work re
                         new_sacrifice_incident.sacrifice_reason = previous_incident.sacrifice_reason # copied from the Add to AniShare request
                         new_sacrifice_incident.sacrifice_method = previous_incident.sacrifice_method # copied from the Add to AniShare request
                         new_sacrifice_incident.incidentdescription = previous_incident.incidentdescription # copied from the Add to AniShare request
+                        new_sacrifice_incident.wr_area          = previous_incident.wr_area # copied from the Add to AniShare request
+                        new_sacrifice_incident.wr_building      = previous_incident.wr_building # copied from the Add to AniShare request
+                        new_sacrifice_incident.wr_room          = previous_incident.wr_room # copied from the Add to AniShare request
+                        new_sacrifice_incident.wr_rack          = previous_incident.wr_rack # copied from the Add to AniShare request
                         new_sacrifice_incident.licence          = previous_incident.licence
                         new_sacrifice_incident.classification   = previous_incident.classification
                         new_sacrifice_incident.severity_level   = previous_incident.severity_level 
