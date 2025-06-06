@@ -260,9 +260,10 @@ class Job(HourlyJob):
                         #send_mail("AniShare Importscriptfehler", '{}: Fehler beim Pupimport von Pup {} mit Fehler {} '.format(mousedb, dataset.eartag, Exception), ADMIN_EMAIL, [ADMIN_EMAIL])   
 
                 if (error == 0 and count_animals_deferred > 0 and count_animals_imported == 0):
-                    #incident_write = WIncident_write.objects.using(mousedb_write).get(incidentid=incident.incidentid)
-                    #incident_write.status = 6 # Deferred
-                    #incident_write.save(using=mousedb_write) 
+                    incident_write = WIncident_write.objects.using(mousedb_write).get(incidentid=incident.incidentid)
+                    incident_write.status = 6 # Deferred
+                    incident_write.save(using=mousedb_write) 
+                    """
                     URL = join(PYRAT_API_URL,'workrequests',str(incident.incidentid))
                     r = requests.patch(URL,auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD), data ='{"status_id":6}')
                     if r.status_code != 200:
@@ -270,25 +271,28 @@ class Job(HourlyJob):
                     else:
                         logger.debug('{}: Incident status {} has been changed to deferred.'.format(datetime.now(), incident.incidentid))
                         send_mail("AniShare: AddToAniShare request set to deferred", 'You created a PyRAT AddToAniShare request with the ID {} but the import process failed and the request is set to deferred. Please check this work request.'.format(incident.incidentid), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])           
+                    """    
                 elif (error == 0 and count_animals_deferred == 0):
-                    #incident_write = WIncident_write.objects.using(mousedb_write).get(incidentid=incident.incidentid)
-                    #incident_write.status = 5 # Added to AniShare
+                    incident_write = WIncident_write.objects.using(mousedb_write).get(incidentid=incident.incidentid)
+                    incident_write.status = 5 # Added to AniShare
+                    """
                     URL = join(PYRAT_API_URL,'workrequests',str(incident.incidentid))
                     r = requests.patch(URL,auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD), data ='{"status_id":5}')
                     if r.status_code != 200:
                         send_mail("AniShare: API request failed", 'Following request failed: {}'.format(r.content), ADMIN_EMAIL, [ADMIN_EMAIL])  
                     else:                             
                         logger.debug('{}: Incident status {} has been changed to 5. Request content:'.format(datetime.now(), incident.incidentid, r.content))
-                    #incident_write.save(using=mousedb_write)
-                    #logger.debug('{}: Incident status {} has been changed to 5.'.format(datetime.now(), incident.incidentid))
+                    """
+                    incident_write.save(using=mousedb_write)
+                    logger.debug('{}: Incident status {} has been changed to 5.'.format(datetime.now(), incident.incidentid))
                     #URL = join(PYRAT_API_URL,'workrequests',str(incident.incidentid),'comments')
                     #r = requests.post(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD), data ='{"comment":"AniShare: Request status changed to Added to Anishare"}')
-                    #new_comment = WIncidentcomment() 
-                    #new_comment.incidentid = incident
-                    #new_comment.comment = 'AniShare: Request status changed to Added to Anishare'
-                    #new_comment.save(using=mousedb_write)
-                    #new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
-                    #new_comment.save(using=mousedb_write)
+                    new_comment = WIncidentcomment() 
+                    new_comment.incidentid = incident
+                    new_comment.comment = 'AniShare: Request status changed to Added to Anishare'
+                    new_comment.save(using=mousedb_write)
+                    new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
+                    new_comment.save(using=mousedb_write)
                 
         except BaseException as e: 
             management.call_command("clearsessions")
