@@ -25,7 +25,7 @@ class Job(HourlyJob):
         PYRAT_API_URL = getattr(settings, "PYRAT_API_URL", None)
         PYRAT_CLIENT_ID = getattr(settings, "PYRAT_CLIENT_ID", None)
         PYRAT_CLIENT_PASSWORD = getattr(settings, "PYRAT_CLIENT_PASSWORD", None)
-
+        """
         if (PYRAT_API_URL == None or PYRAT_CLIENT_ID == None or PYRAT_CLIENT_PASSWORD == None):
             logger.debug('Die Verbindungsparamater zu PyRAT (PYRAT_API_URL, PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD) müssen noch in der local settings Datei gesetzt werden')
             send_mail("AniShare Importscriptfehler hourly_insert_from_pyrat.py", 'Die Verbindungsparamater zu PyRAT (PYRAT_API_URL, PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD) müssen gesetzt werden', ADMIN_EMAIL, [ADMIN_EMAIL])
@@ -46,6 +46,7 @@ class Job(HourlyJob):
             ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
             send_mail("AniShare Importscriptfehler hourly_insert_from_pyrat.py", '{}: Fehler bei der Überprüfung der PyRAT API {} in Zeile {}'.format(mousedb, e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
 
+            """
 
         try:
             today = datetime.today().date()
