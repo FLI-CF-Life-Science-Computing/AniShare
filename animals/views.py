@@ -33,7 +33,7 @@ from tablib import Dataset
 from .filters import AnimalFilter, OrganFilter, ChangeFilter, PersonFilter, FishFilter, MouseFilter, PupFilter
 from .models import Animal, Organ, Change, FishPeople, Fish, Location, Person, Lab, FishPeople, FishTeam, FishMutation, FishRole
 from .models import Mouse, MouseMutation, PyratUser, PyratUserPermission, Pup 
-from .models import SacrificeIncidentToken, WIncident_write, WIncident, WIncidentanimals_write, WIncidentpups_write, WIncidentcomment, SearchRequestAnimal
+from .models import SacrificeIncidentToken, WIncident_write, WIncident, WIncidentanimals_write, WIncidentpups_write, WIncidentcomment, SearchRequestAnimal, Cached_work_request_subject_location
 from .importscript import runimport
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.utils.html import strip_tags
@@ -832,6 +832,15 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
                         new_sacrifice_incident.save(using=MOUSEDB_WRITE)
                         time.sleep(1)
 
+                        new_cached_work_request_subject_location = Cached_work_request_subject_location()
+                        new_cached_work_request_subject_location.work_request_id = new_sacrifice_incident.incidentid
+                        new_cached_work_request_subject_location.building_id = new_sacrifice_incident.wr_building
+                        new_cached_work_request_subject_location.area_id = new_sacrifice_incident.wr_area
+                        new_cached_work_request_subject_location.room_id = new_sacrifice_incident.wr_room
+                        new_cached_work_request_subject_location.rack_id = new_sacrifice_incident.wr_rack
+                        new_cached_work_request_subject_location.save(using=MOUSEDB_WRITE)
+
+
                         new_sacrifice_incident_tmp = WIncident.objects.using(MOUSEDB).get(incidentid=new_sacrifice_incident.incidentid) 
                         new_comment = WIncidentcomment()
                         new_comment.incidentid = new_sacrifice_incident_tmp
@@ -1023,9 +1032,9 @@ def ConfirmRequestAPI(request, token):### Change Status from a sacrifice work re
                         new_sacrifice_incident.wr_rack          = previous_incident.wr_rack # copied from the Add to AniShare request
                         new_sacrifice_incident.licence          = previous_incident.licence
                         new_sacrifice_incident.classification   = previous_incident.classification
-                        new_sacrifice_incident.severity_level   = previous_incident.severity_level 
+                        #new_sacrifice_incident.severity_level   = previous_incident.severity_level 
 
-                        new_sacrifice_incident.animal.mouse_idbehavior         = 4 # Sacrifice
+                        new_sacrifice_incident.behavior         = 4 # Sacrifice
                         new_sacrifice_incident.priority         = 3 # medium
                         new_sacrifice_incident.status           = 2 # open
                         new_sacrifice_incident.duedate          = datetime.now() + timedelta(hours=TIMEDIFF) + timedelta(days=3)
@@ -1034,6 +1043,14 @@ def ConfirmRequestAPI(request, token):### Change Status from a sacrifice work re
                         MOUSEDB_WRITE = getattr(settings, "MOUSEDB_WRITE", None)
                         new_sacrifice_incident.save(using=MOUSEDB_WRITE)
                         time.sleep(1)
+
+                        new_cached_work_request_subject_location = Cached_work_request_subject_location()
+                        new_cached_work_request_subject_location.work_request_id = new_sacrifice_incident.incidentid
+                        new_cached_work_request_subject_location.building_id = new_sacrifice_incident.wr_building
+                        new_cached_work_request_subject_location.area_id = new_sacrifice_incident.wr_area
+                        new_cached_work_request_subject_location.room_id = new_sacrifice_incident.wr_room
+                        new_cached_work_request_subject_location.rack_id = new_sacrifice_incident.wr_rack
+                        new_cached_work_request_subject_location.save(using=MOUSEDB_WRITE)
 
                         new_sacrifice_incident_tmp = WIncident.objects.using(MOUSEDB).get(incidentid=new_sacrifice_incident.incidentid) 
                         new_comment = WIncidentcomment()

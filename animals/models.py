@@ -729,6 +729,18 @@ class WIncidentpups_write(models.Model):
         managed = False
         db_table = 'w_incident_pups'
 
+
+class Cached_work_request_subject_location(models.Model):
+    work_request_id     = models.AutoField(db_column='work_request_id', primary_key=True)
+    building_id         = models.IntegerField(db_column='building_id', blank=True, null=True)
+    area_id             = models.IntegerField(db_column='area_id', blank=True, null=True)
+    room_id             = models.IntegerField(db_column='room_id', blank=True, null=True)
+    rack_id             = models.IntegerField(db_column='rack_id', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'cached_work_request_subject_location'
+
 class SacrificeIncidentToken(models.Model):
     initiator   = models.CharField(max_length=50, blank=False, null=False)
     incidentid  = models.IntegerField(blank=False, null=False) # AddToAniShare Incident ID
