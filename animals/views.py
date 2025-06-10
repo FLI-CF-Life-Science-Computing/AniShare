@@ -832,13 +832,18 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
                         new_sacrifice_incident.save(using=MOUSEDB_WRITE)
                         time.sleep(1)
 
-                        new_cached_work_request_subject_location = Cached_work_request_subject_location()
-                        new_cached_work_request_subject_location.work_request_id = new_sacrifice_incident.incidentid
-                        new_cached_work_request_subject_location.building_id = new_sacrifice_incident.wr_building
-                        new_cached_work_request_subject_location.area_id = new_sacrifice_incident.wr_area
-                        new_cached_work_request_subject_location.room_id = new_sacrifice_incident.wr_room
-                        new_cached_work_request_subject_location.rack_id = new_sacrifice_incident.wr_rack
-                        new_cached_work_request_subject_location.save(using=MOUSEDB_WRITE)
+                        try:
+                            previous_cached_work_request = Cached_work_request_subject_location.objects.using(MOUSEDB).get(work_request_id=previous_incident.incidentid)
+
+                            new_cached_work_request_subject_location = Cached_work_request_subject_location()
+                            new_cached_work_request_subject_location.work_request_id = new_sacrifice_incident.incidentid
+                            new_cached_work_request_subject_location.building_id = previous_cached_work_request.building_id
+                            new_cached_work_request_subject_location.area_id = previous_cached_work_request.area_id
+                            new_cached_work_request_subject_location.room_id = previous_cached_work_request.room_id
+                            new_cached_work_request_subject_location.rack_id = previous_cached_work_request.rack_id
+                            new_cached_work_request_subject_location.save(using=MOUSEDB_WRITE)
+                        except BaseException as e:
+                            send_mail("AniShare ConfirmRequest", 'Fehler new_chached_work_request {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
 
 
                         new_sacrifice_incident_tmp = WIncident.objects.using(MOUSEDB).get(incidentid=new_sacrifice_incident.incidentid) 
@@ -1044,13 +1049,18 @@ def ConfirmRequestAPI(request, token):### Change Status from a sacrifice work re
                         new_sacrifice_incident.save(using=MOUSEDB_WRITE)
                         time.sleep(1)
 
-                        new_cached_work_request_subject_location = Cached_work_request_subject_location()
-                        new_cached_work_request_subject_location.work_request_id = new_sacrifice_incident.incidentid
-                        new_cached_work_request_subject_location.building_id = new_sacrifice_incident.wr_building
-                        new_cached_work_request_subject_location.area_id = new_sacrifice_incident.wr_area
-                        new_cached_work_request_subject_location.room_id = new_sacrifice_incident.wr_room
-                        new_cached_work_request_subject_location.rack_id = new_sacrifice_incident.wr_rack
-                        new_cached_work_request_subject_location.save(using=MOUSEDB_WRITE)
+                        try:
+                            previous_cached_work_request = Cached_work_request_subject_location.objects.using(MOUSEDB).get(work_request_id=previous_incident.incidentid)
+
+                            new_cached_work_request_subject_location = Cached_work_request_subject_location()
+                            new_cached_work_request_subject_location.work_request_id = new_sacrifice_incident.incidentid
+                            new_cached_work_request_subject_location.building_id = previous_cached_work_request.building_id
+                            new_cached_work_request_subject_location.area_id = previous_cached_work_request.area_id
+                            new_cached_work_request_subject_location.room_id = previous_cached_work_request.room_id
+                            new_cached_work_request_subject_location.rack_id = previous_cached_work_request.rack_id
+                            new_cached_work_request_subject_location.save(using=MOUSEDB_WRITE)
+                        except BaseException as e:
+                            send_mail("AniShare ConfirmRequest", 'Fehler new_chached_work_request {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
 
                         new_sacrifice_incident_tmp = WIncident.objects.using(MOUSEDB).get(incidentid=new_sacrifice_incident.incidentid) 
                         new_comment = WIncidentcomment()
