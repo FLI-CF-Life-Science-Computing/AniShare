@@ -833,14 +833,14 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
                         time.sleep(1)
 
                         try:
-                            previous_cached_work_request = Cached_work_request_subject_location.objects.using(MOUSEDB).get(work_request_id=previous_incident.incidentid)
+                            previous_cached_work_request = Cached_work_request_subject_location.objects.using(MOUSEDB_WRITE).filter(work_request_id=previous_incident.incidentid)
 
                             new_cached_work_request_subject_location = Cached_work_request_subject_location()
                             new_cached_work_request_subject_location.work_request_id = new_sacrifice_incident.incidentid
-                            new_cached_work_request_subject_location.building_id = previous_cached_work_request.building_id
-                            new_cached_work_request_subject_location.area_id = previous_cached_work_request.area_id
-                            new_cached_work_request_subject_location.room_id = previous_cached_work_request.room_id
-                            new_cached_work_request_subject_location.rack_id = previous_cached_work_request.rack_id
+                            new_cached_work_request_subject_location.building_id = previous_cached_work_request[0].building_id
+                            new_cached_work_request_subject_location.area_id = previous_cached_work_request[0].area_id
+                            new_cached_work_request_subject_location.room_id = previous_cached_work_request[0].room_id
+                            new_cached_work_request_subject_location.rack_id = previous_cached_work_request[0].rack_id
                             new_cached_work_request_subject_location.save(using=MOUSEDB_WRITE)
                         except BaseException as e:
                             send_mail("AniShare ConfirmRequest", 'Fehler new_chached_work_request {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
@@ -1050,14 +1050,14 @@ def ConfirmRequestAPI(request, token):### Change Status from a sacrifice work re
                         time.sleep(1)
 
                         try:
-                            previous_cached_work_request = Cached_work_request_subject_location.objects.using(MOUSEDB).get(work_request_id=previous_incident.incidentid)
+                            previous_cached_work_request = Cached_work_request_subject_location.objects.using(MOUSEDB).filter(work_request_id=previous_incident.incidentid)
 
                             new_cached_work_request_subject_location = Cached_work_request_subject_location()
                             new_cached_work_request_subject_location.work_request_id = new_sacrifice_incident.incidentid
-                            new_cached_work_request_subject_location.building_id = previous_cached_work_request.building_id
-                            new_cached_work_request_subject_location.area_id = previous_cached_work_request.area_id
-                            new_cached_work_request_subject_location.room_id = previous_cached_work_request.room_id
-                            new_cached_work_request_subject_location.rack_id = previous_cached_work_request.rack_id
+                            new_cached_work_request_subject_location.building_id = previous_cached_work_request[0].building_id
+                            new_cached_work_request_subject_location.area_id = previous_cached_work_request[0].area_id
+                            new_cached_work_request_subject_location.room_id = previous_cached_work_request[0].room_id
+                            new_cached_work_request_subject_location.rack_id = previous_cached_work_request[0].rack_id
                             new_cached_work_request_subject_location.save(using=MOUSEDB_WRITE)
                         except BaseException as e:
                             send_mail("AniShare ConfirmRequest", 'Fehler new_chached_work_request {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
