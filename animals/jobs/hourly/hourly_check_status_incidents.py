@@ -121,7 +121,7 @@ class Job(HourlyJob):
                         for animal in animallist:
                             if animal.new_owner:
                                 animallist = animallist.exclude(pk=animal.pk)
-                            if animal.line in LINES_PROHIBIT_SACRIFICE:
+                            if animal.line in LINES_PROHIBIT_SACRIFICE and incident_write.sacrifice_reason != 7:
                                 animallist = animallist.exclude(pk=animal.pk) 
                             i = i + 1
                         if len(animallist) > 0:

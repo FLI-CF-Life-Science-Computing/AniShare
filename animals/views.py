@@ -767,7 +767,7 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
                         for animal in animallist:
                             if animal.new_owner:
                                 animallist=animallist.exclude(pk=animal.pk)
-                            if animal.line in LINES_PROHIBIT_SACRIFICE:
+                            if animal.line in LINES_PROHIBIT_SACRIFICE and previous_incident.sacrifice_reason != 7:
                                 animallist = animallist.exclude(pk=animal.pk)
                             i = i + 1
                         if len(animallist) == 0:
@@ -957,7 +957,7 @@ def ConfirmRequestAPI(request, token):### Change Status from a sacrifice work re
                         for animal in animallist:
                             if animal.new_owner:
                                 animallist=animallist.exclude(pk=animal.pk)
-                            if animal.line in LINES_PROHIBIT_SACRIFICE:
+                            if animal.line in LINES_PROHIBIT_SACRIFICE and previous_incident.sacrifice_reason != 7:
                                 animallist = animallist.exclude(pk=animal.pk)
                             i = i + 1
                         if len(animallist) == 0:

@@ -58,8 +58,8 @@ class Job(HourlyJob):
                 error = 0
                 count_animals_deferred = 0
                 count_animals_imported = 0
-                initiator_mail = ""
-                initiator_mail = incident.initiator.email
+                #initiator_mail = ""
+                #initiator_mail = incident.initiator.email
                 
                 # Import mice #
                 animallist = WIncidentAnimals.objects.using(mousedb).filter(incidentid = incident.incidentid)
