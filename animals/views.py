@@ -618,7 +618,7 @@ def tickatlabfishlist(request):
     try: 
         #logger.debug('{}:tickatlabfishlist'.format(datetime.now()))
         fishuser = FishPeople.objects.using('fishdb').get(login__iexact=request.user.username)
-        fishrole = FishRole.objects.using('fishdb').filter(userid=fishuser.id).filter(roleid=20000057)	# 20000057 = Administrator
+        fishrole = FishRole.objects.using('fishdb').filter(userid=fishuser.id).filter(Q(roleid=20000057) | Q(roleid=40255444))	# 20000057 = Administrator, 40255444 = Tierpflege Zucht --> Alle Tiere werden angezeigt
         if fishrole:
             fishlist = Fish.objects.using('fishdb').all().order_by('id')
             f = FishFilter(request.GET, queryset=fishlist)
