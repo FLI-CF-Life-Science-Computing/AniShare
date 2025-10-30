@@ -41,6 +41,7 @@ from .forms import addAnimalForm, addOrganForm, searchRequestAnimalForm
 import requests
 from os.path import join
 import json
+from django.contrib.auth import logout
 
 
 logger = logging.getLogger('mylogger')
@@ -1427,3 +1428,6 @@ def EditAnimalsSearchRequest(request,request_id):
         ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
         send_mail("AniShare Fehler", 'Fehler in EditAnimalsSearchRequest {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno ), request.user.email, [ADMIN_EMAIL])
         return HttpResponseRedirect('/')  # Redirect after POST
+
+def logout_view(request):
+    logout(request)
