@@ -47,6 +47,7 @@ urlpatterns = [
     path('admin/doc/', include('django.contrib.admindocs.urls')),
     #re_path(r'^jet/', jet.urls, name='jet'),  # Django JET URLS
     path('admin/', admin.site.urls),
+    path('logout', animals.views.logout_view, name='logout'),
     path('macros/', animals.views.macros, name='macro'),
     path('changehistory/', animals.views.change_history, name='change'),
     path('changehistory/feed', never_cache(animals.views.LatestChangesFeed()), name='version-feed'),
