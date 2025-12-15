@@ -679,55 +679,55 @@ class WIncident_write(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'w_incident'
+        db_table = 'work_request'
 
 class WIncidentAnimals(models.Model):
     id          = models.IntegerField(db_column='id', primary_key=True)
     #animalid = models.ForeignKey('Mouse', models.DO_NOTHING, db_column='animalid', blank=True, null=True)
     #incidentid = models.ForeignKey('WIncident', models.DO_NOTHING, db_column='incidentid', blank=True, null=True)
-    animalid    = models.IntegerField(blank=False, null=False)
-    incidentid  = models.IntegerField(blank=False, null=False)
+    animalid    = models.IntegerField(blank=False, null=False, db_column='animal_id')
+    incidentid  = models.IntegerField(blank=False, null=False, db_column='work_request_id')
 
     class Meta:
         managed = False
-        db_table = 'w_incident_animals'
+        db_table = 'work_request_animal_ref'
 
 class WIncidentPups(models.Model):
     id          = models.IntegerField(db_column='id', primary_key=True)
-    pupid       = models.IntegerField(blank=False, null=False)
-    incidentid  = models.IntegerField(blank=False, null=False)
+    pupid       = models.IntegerField(blank=False, null=False, db_column='pup_id')
+    incidentid  = models.IntegerField(blank=False, null=False, db_column='work_request_id')
 
     class Meta:
         managed = False
-        db_table = 'w_incident_pups'
+        db_table = 'work_request_pup_ref'
 
 
 class WIncidentcomment(models.Model):
-    incidentid      = models.ForeignKey('WIncident', models.DO_NOTHING, db_column='incidentid', blank=True, null=True)
+    incidentid      = models.ForeignKey('WIncident', models.DO_NOTHING, db_column='work_request_id', blank=True, null=True)
     comment         = models.TextField()
     commentdate     = models.DateTimeField(null=False, auto_now_add=True)
 
     class Meta:
         managed = False
-        db_table = 'w_incidentcomment'
+        db_table = 'comment_work_request_ref'
 
 class WIncidentanimals_write(models.Model):
-    incidentid      = models.ForeignKey('WIncident_write', models.DO_NOTHING, db_column='incidentid', blank=True, null=True)
+    incidentid      = models.ForeignKey('WIncident_write', models.DO_NOTHING, db_column='work_request_id', blank=True, null=True)
     animalid        = models.IntegerField(db_column='animalid',blank=False, null=False)
     perform_status  = models.CharField(max_length=20, blank=False, null=False,db_column='perform_status')
 
     class Meta:
         managed = False
-        db_table = 'w_incident_animals'
+        db_table = 'work_request_animal_ref'
 
 class WIncidentpups_write(models.Model):
-    incidentid      = models.ForeignKey('WIncident_write', models.DO_NOTHING, db_column='incidentid', blank=True, null=True)
-    pupid           = models.IntegerField(db_column='pupid',blank=False, null=False)
+    incidentid      = models.ForeignKey('WIncident_write', models.DO_NOTHING, db_column='work_request_id', blank=True, null=True)
+    pupid           = models.IntegerField(db_column='pup_id',blank=False, null=False)
     perform_status  = models.CharField(max_length=20, blank=False, null=False,db_column='perform_status')
 
     class Meta:
         managed = False
-        db_table = 'w_incident_pups'
+        db_table = 'work_request_pup_ref'
 
 
 class Cached_work_request_subject_location(models.Model):
