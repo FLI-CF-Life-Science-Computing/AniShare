@@ -326,8 +326,8 @@ class PyratUser(models.Model):
     username = models.CharField(db_column='USERNAME', max_length=255)
     firstname = models.CharField(db_column='FIRSTNAME', max_length=255)
     lastname = models.CharField(db_column='LASTNAME', max_length=255)
-    usernum = models.CharField(db_column='USERNUM', max_length=255)
-    locallevel = models.IntegerField(db_column='locallevel',)
+    usernum = models.CharField(db_column='locallevel', max_length=255)
+    #locallevel = models.IntegerField(db_column='locallevel',)
     email = models.CharField(db_column='EMAIL', max_length=255)
 
     class Meta:
@@ -581,20 +581,20 @@ def update_killing_person(sender, instance, created, **kwargs):
 #    organUsed=forms.ModelMultipleChoiceField(queryset=Organtype.objects.all(),widget=forms.CheckboxSelectMultiple())
 
 class WIncident(models.Model):
-    incidentid = models.AutoField(db_column='incidentid', primary_key=True)
-    incidentclass =  models.IntegerField(db_column='incidentclass', blank=True, null=True)
+    incidentid = models.AutoField(db_column='id', primary_key=True)
+    incidentclass =  models.IntegerField(db_column='class_id', blank=True, null=True)
     #incidentclass = models.ForeignKey('WIncidentclass', models.DO_NOTHING, db_column='incidentclass', blank=True, null=True)
     initiator = models.ForeignKey('PyratUser', models.DO_NOTHING, blank=True, null=True,db_column='initiator_id')
     owner = models.ForeignKey('PyratUser', models.DO_NOTHING, blank=True, null=True, related_name='ownerpyrat', db_column='owner_id')
     responsible= models.ForeignKey('PyratUser', models.DO_NOTHING, blank=True, null=True, related_name='responsiblepyrat', db_column='responsible_id')
-    incidentdescription = models.TextField(db_column='incidentdescription')
-    opendate = models.DateTimeField(db_column='opendate')
-    closedate = models.DateTimeField(blank=True, null=True, db_column='closedate')
-    priority = models.IntegerField(blank=True, null=True, db_column='priority')
+    incidentdescription = models.TextField(db_column='description')
+    opendate = models.DateTimeField(db_column='open_date')
+    closedate = models.DateTimeField(blank=True, null=True, db_column='close_date')
+    priority = models.IntegerField(blank=True, null=True, db_column='priority_id')
     #priority = models.ForeignKey('WIncidentpriorities', models.DO_NOTHING, db_column='priority')
-    status = models.IntegerField(blank=True, null=True, db_column='status') 
+    status = models.IntegerField(blank=True, null=True, db_column='status_id') 
     #status = models.ForeignKey('WIncidentstatus', models.DO_NOTHING, db_column='status')
-    duedate = models.DateTimeField(blank=True, null=True, db_column='duedate')
+    duedate = models.DateTimeField(blank=True, null=True, db_column='due_date')
     sacrifice_reason = models.IntegerField(blank=True, null=True, db_column='sacrifice_reason_id') 
     sacrifice_method = models.IntegerField(blank=True, null=True, db_column='sacrifice_method_id') 
     licence = models.IntegerField(blank=True, null=True, db_column='licence_id')
@@ -621,16 +621,16 @@ class WIncident(models.Model):
     new_owner = models.ForeignKey('Localuser', models.DO_NOTHING, blank=True, null=True)
     new_responsible = models.ForeignKey('Localuser', models.DO_NOTHING, blank=True, null=True)
     """
-    change_responsible = models.IntegerField(blank=True, null=True,db_column='change_responsible')
-    generation = models.CharField(max_length=10, blank=True, null=True,db_column='generation')
+    change_responsible = models.IntegerField(blank=True, null=True,db_column='export_responsible_id')
+    generation = models.CharField(max_length=10, blank=True, null=True,db_column='breeding_generation')
 
     class Meta:
         managed = False
         db_table = 'v_incident'
 
 class WIncident_write(models.Model):
-    incidentid = models.AutoField(db_column='incidentid', primary_key=True)
-    incidentclass =  models.IntegerField(db_column='incidentclass', blank=True, null=True)
+    incidentid = models.AutoField(db_column='id', primary_key=True)
+    incidentclass =  models.IntegerField(db_column='class_id', blank=True, null=True)
     #incidentclass = models.ForeignKey('WIncidentclass', models.DO_NOTHING, db_column='incidentclass', blank=True, null=True)
     #initiator = models.ForeignKey('PyratUser', models.DO_NOTHING, blank=True, null=True,db_column='initiator_id')
     initiator = models.IntegerField(blank=True, null=True,db_column='initiator_id')
@@ -638,14 +638,14 @@ class WIncident_write(models.Model):
     #owner = models.ForeignKey('PyratUser', models.DO_NOTHING, blank=True, null=True, related_name='ownerpyrat_write', db_column='owner_id')
     responsible = models.IntegerField(db_column='responsible_id', blank=True, null=True)
     #responsible= models.ForeignKey('PyratUser', models.DO_NOTHING, blank=True, null=True, related_name='responsiblepyrat_write', db_column='responsible_id')
-    incidentdescription = models.TextField(db_column='incidentdescription')
-    opendate = models.DateTimeField(db_column='opendate', auto_now_add=True)
-    closedate = models.DateTimeField(blank=True, null=True, db_column='closedate')
-    priority = models.IntegerField(blank=True, null=True, db_column='priority')
+    incidentdescription = models.TextField(db_column='description')
+    opendate = models.DateTimeField(db_column='open_date', auto_now_add=True)
+    closedate = models.DateTimeField(blank=True, null=True, db_column='close_date')
+    priority = models.IntegerField(blank=True, null=True, db_column='priority_id')
     #priority = models.ForeignKey('WIncidentpriorities', models.DO_NOTHING, db_column='priority')
-    status = models.IntegerField(blank=True, null=True, db_column='status') 
+    status = models.IntegerField(blank=True, null=True, db_column='status_id') 
     #status = models.ForeignKey('WIncidentstatus', models.DO_NOTHING, db_column='status')
-    duedate = models.DateTimeField(blank=True, null=True, db_column='duedate')
+    duedate = models.DateTimeField(blank=True, null=True, db_column='due_date')
     sacrifice_reason = models.IntegerField(blank=True, null=True, db_column='sacrifice_reason_id') 
     licence = models.IntegerField(blank=True, null=True, db_column='licence_id')
     classification = models.IntegerField(blank=True, null=True, db_column='classification_id')
@@ -674,8 +674,8 @@ class WIncident_write(models.Model):
     new_owner = models.ForeignKey('Localuser', models.DO_NOTHING, blank=True, null=True)
     new_responsible = models.ForeignKey('Localuser', models.DO_NOTHING, blank=True, null=True)
     """
-    change_responsible = models.IntegerField(blank=True, null=True,db_column='change_responsible')
-    generation = models.CharField(max_length=10, blank=True, null=True,db_column='generation')
+    change_responsible = models.IntegerField(blank=True, null=True,db_column='export_responsible_id')
+    generation = models.CharField(max_length=10, blank=True, null=True,db_column='breeding_generation')
 
     class Meta:
         managed = False
