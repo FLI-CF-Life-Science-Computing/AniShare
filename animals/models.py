@@ -703,6 +703,7 @@ class WIncidentPups(models.Model):
 
 
 class WIncidentcomment(models.Model):
+    id              = models.AutoField(db_column='id', primary_key=True)
     incidentid      = models.ForeignKey('WIncident', models.DO_NOTHING, db_column='work_request_id', blank=True, null=True)
     comment         = models.TextField()
     commentdate     = models.DateTimeField(null=False, auto_now_add=True)
@@ -712,6 +713,7 @@ class WIncidentcomment(models.Model):
         db_table = 'comment_work_request_ref'
 
 class WIncidentanimals_write(models.Model):
+    id              = models.AutoField(db_column='id', primary_key=True)
     incidentid      = models.ForeignKey('WIncident_write', models.DO_NOTHING, db_column='work_request_id', blank=True, null=True)
     animalid        = models.IntegerField(db_column='animalid',blank=False, null=False)
     perform_status  = models.CharField(max_length=20, blank=False, null=False,db_column='perform_status')
@@ -721,6 +723,7 @@ class WIncidentanimals_write(models.Model):
         db_table = 'work_request_animal_ref'
 
 class WIncidentpups_write(models.Model):
+    id              = models.AutoField(db_column='id', primary_key=True)
     incidentid      = models.ForeignKey('WIncident_write', models.DO_NOTHING, db_column='work_request_id', blank=True, null=True)
     pupid           = models.IntegerField(db_column='pup_id',blank=False, null=False)
     perform_status  = models.CharField(max_length=20, blank=False, null=False,db_column='perform_status')
