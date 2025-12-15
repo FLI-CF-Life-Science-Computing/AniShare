@@ -98,7 +98,7 @@ class Job(HourlyJob):
                             new_comment.save(using=mousedb_write)
                             new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
                             new_comment.save(using=mousedb_write)
-                            send_mail("AniShare: Mouse without license", 'You created a work request with the ID {} to add the mouse {} to AniShare. It is not possible to import a mouse without a license. '.format(incident.id, pyratmouse.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                            send_mail("AniShare: Mouse without license", 'You created a work request with the ID {} to add the mouse {} to AniShare. It is not possible to import a mouse without a license. '.format(incident.incidentid, pyratmouse.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                             continue
                         dataset = Mouse.objects.using(mousedb).get(id=pyratmouse.animalid)
                         new_mouse.database_id    = dataset.eartag

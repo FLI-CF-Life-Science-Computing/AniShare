@@ -458,7 +458,7 @@ class PyratUserPermission(models.Model):
     userid = models.IntegerField(db_column='userid')
     aliasid = models.IntegerField(db_column='aliasid')
     uid = models.IntegerField(db_column='uid',)
-    usernum = models.CharField(db_column='usernum', max_length=255)
+    usernum = models.CharField(db_column='levelid', max_length=255)
 
     class Meta:
         managed = False
