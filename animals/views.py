@@ -351,8 +351,7 @@ def pyratpuplist(request):
     pupownerid = []
     pupelist = None
     i = 0
-    if (pyratuser.usernum is not None and pyratuser.usernum != ''):
-        pupownerid.insert(i,pyratuser.id)
+    pupownerid.insert(i,pyratuser.id)
     permission= PyratUserPermission.objects.using(MOUSEDB).all().filter(userid=pyratuser.id)
     if (permission is not None and permission !=''):       
         for p in permission:
@@ -389,8 +388,7 @@ def pyratmouselist(request):
     mouseownerid = []
     mouselist = None
     i = 0
-    if (pyratuser.usernum is not None and pyratuser.usernum != ''):
-        mouseownerid.insert(i,pyratuser.id)
+    mouseownerid.insert(i,pyratuser.id)
     permission= PyratUserPermission.objects.using(MOUSEDB).all().filter(userid=pyratuser.id)
     if (permission is not None and permission !=''):       
         for p in permission:
@@ -422,8 +420,7 @@ def pyratmouselistuser(request, username):
     mouseownerid = []
     mouselist = None
     i = 0
-    if (pyratuser.usernum is not None and pyratuser.usernum != ''):
-        mouseownerid.insert(i,pyratuser.id)
+    mouseownerid.insert(i,pyratuser.id)
     permission= PyratUserPermission.objects.using(MOUSEDB).all().filter(userid=pyratuser.id)
     if (permission is not None and permission !=''):       
         for p in permission:
