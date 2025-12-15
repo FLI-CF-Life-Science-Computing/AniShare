@@ -326,8 +326,8 @@ class PyratUser(models.Model):
     username = models.CharField(db_column='USERNAME', max_length=255)
     firstname = models.CharField(db_column='FIRSTNAME', max_length=255)
     lastname = models.CharField(db_column='LASTNAME', max_length=255)
-    usernum = models.CharField(db_column='locallevel', max_length=255)
-    #locallevel = models.IntegerField(db_column='locallevel',)
+    usernum = models.IntegerField(db_column='locallevel')
+    locallevel = models.IntegerField(db_column='locallevel')
     email = models.CharField(db_column='EMAIL', max_length=255)
 
     class Meta:
