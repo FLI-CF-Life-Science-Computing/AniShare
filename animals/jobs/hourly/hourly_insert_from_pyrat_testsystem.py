@@ -5,8 +5,8 @@ class Job(HourlyJob):
 
     def execute(self):
         from django.core import management
-        from ...models import WIncident, WIncident_write, WIncidentAnimals, Animal, Mouse, Pup, MouseMutation, Location, Person, Lab, WIncidentcomment, WIncidentPups
-        from ...models import MouseAll
+        from ...models import WIncident, WIncident_write, WIncidentAnimals, Animal, Mouse, Pup, MouseMutation, Location, Person, Lab, WIncidentPups
+        from ...models import MouseAll, Comment, Comment_work_request_ref, PyratUser
         from django.contrib.auth.models import User
         from django.core.mail import EmailMultiAlternatives, send_mail
         from datetime import datetime, timedelta
@@ -95,12 +95,18 @@ class Job(HourlyJob):
                             if len(MouseAll.objects.using(mousedb).filter(id=pyratmouse.animalid)) > 0: # Prüfe ob Maus noch lebt
                                 continue # Maus ist bereits gestorben
                             count_animals_deferred = count_animals_deferred + 1
-                            new_comment = WIncidentcomment()
-                            new_comment.incidentid = incident
-                            new_comment.comment = 'AniShare: Mouse {} without licence can not be imported'.format(pyratmouse.animalid)
-                            new_comment.save(using=mousedb_write)
-                            new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
-                            new_comment.save(using=mousedb_write)
+                            comment = Comment()
+                            anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
+                            comment.creator_id = anishareuser
+                            comment.content = 'AniShare: Mouse {} without licence can not be imported'.format(pyratmouse.animalid)
+                            comment.save(using=mousedb_write)
+                            comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                            comment.save(using=mousedb_write)
+
+                            comment_work_request_ref = Comment_work_request_ref()
+                            comment_work_request_ref.comment_id = comment
+                            comment_work_request_ref.work_request_id = incident.incidentid
+                            comment_work_request_ref.save(using=mousedb_write)
                             send_mail("AniShare: Mouse without license", 'You created a work request with the ID {} to add the mouse {} to AniShare. It is not possible to import a mouse without a license. '.format(incident.id, pyratmouse.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                             continue
                         dataset = Mouse.objects.using(mousedb).get(id=pyratmouse.animalid)
@@ -180,17 +186,26 @@ class Job(HourlyJob):
                         new_pup = Animal()
                         new_pup.animal_type    = "pup"
                         if dataset.licence == None:
-                            new_comment = WIncidentcomment()
-                            new_comment.incidentid = incident
+                            # add a comment to the incident
+                            comment = Comment()
+                            anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
+                            comment.creator_id = anishareuser
+ 
                             if dataset.eartag:
-                                new_comment.comment = 'Pup {} without licence can not be imported'.format(dataset.eartag)
+                                comment.content = 'Pup {} without licence can not be imported'.format(dataset.eartag)
                                 send_mail("AniShare: Pup without license", 'You created a work request with the ID {} to add the pup {} to AniShare. It is not possible to import a pup without a license. '.format(incident.incidentid, dataset.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                             else:
-                                new_comment.comment = 'Pup {} without licence can not be imported'.format(pyratpup.pupid)
+                                comment.content = 'Pup {} without licence can not be imported'.format(pyratpup.pupid)
                                 send_mail("AniShare: Pup without license", 'You created a work request with the ID {} to add the pup {} to AniShare. It is not possible to import a pup without a license. '.format(incident.incidentid, dataset.id), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
-                            new_comment.save(using=mousedb_write)
-                            new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
-                            new_comment.save(using=mousedb_write)
+                            comment.save(using=mousedb_write)
+                            comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                            comment.save(using=mousedb_write)
+
+                            comment_work_request_ref = Comment_work_request_ref()
+                            comment_work_request_ref.comment_id = comment
+                            comment_work_request_ref.work_request_id = incident.incidentid
+                            comment_work_request_ref.save(using=mousedb_write)
+
                             count_animals_deferred = count_animals_deferred + 1
                             continue
                         new_pup.pup_id       = dataset.id
@@ -287,12 +302,18 @@ class Job(HourlyJob):
                     logger.debug('{}: Incident status {} has been changed to 5.'.format(datetime.now(), incident.incidentid))
                     #URL = join(PYRAT_API_URL,'workrequests',str(incident.incidentid),'comments')
                     #r = requests.post(URL, auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD), data ='{"comment":"AniShare: Request status changed to Added to Anishare"}')
-                    new_comment = WIncidentcomment() 
-                    new_comment.incidentid = incident
-                    new_comment.comment = 'AniShare: Request status changed to Added to Anishare'
-                    new_comment.save(using=mousedb_write)
-                    new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
-                    new_comment.save(using=mousedb_write)
+                    comment = Comment()
+                    anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
+                    comment.creator_id = anishareuser
+                    comment.content = 'AniShare: Request status changed to Added to Anishare'
+                    comment.save(using=mousedb_write)
+                    comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                    comment.save(using=mousedb_write)
+
+                    comment_work_request_ref = Comment_work_request_ref()
+                    comment_work_request_ref.comment_id = comment
+                    comment_work_request_ref.work_request_id = incident.incidentid
+                    comment_work_request_ref.save(using=mousedb_write)
                 
         except BaseException as e: 
             management.call_command("clearsessions")

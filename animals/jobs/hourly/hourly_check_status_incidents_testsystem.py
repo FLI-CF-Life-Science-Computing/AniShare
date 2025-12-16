@@ -7,7 +7,7 @@ class Job(HourlyJob):
     def execute(self):
         from django.core import management
         from ...models import WIncident, WIncident_write, WIncidentAnimals, Animal, Mouse, WIncidentcomment, WIncidentPups, Pup, WIncidentanimals_write, WIncidentpups_write
-        from ...models import SacrificeIncidentToken
+        from ...models import SacrificeIncidentToken, Comment, Comment_work_request_ref, PyratUser
         from django.core.mail import EmailMultiAlternatives, send_mail
         from datetime import datetime, timedelta
         from django.conf import settings
@@ -120,12 +120,20 @@ class Job(HourlyJob):
                     r = requests.patch(URL,auth=(PYRAT_CLIENT_ID, PYRAT_CLIENT_PASSWORD), data ='{"status_id":1}')
                     
                     logger.debug('{}: Incident status {} has been changed to 1.'.format(datetime.now(), incident.incidentid))
-                    #new_comment = WIncidentcomment()
-                    #new_comment.incidentid = incident
-                    #new_comment.comment = 'AniShare: Request status changed to closed'
-                    #new_comment.save(using=mousedb_write) 
-                    #new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
-                    #new_comment.save(using=mousedb_write)
+                    
+                    # add a comment to the incident
+                    comment = Comment()
+                    anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
+                    comment.creator_id = anishareuser
+                    comment.content = 'AniShare: Request status changed to closed'
+                    comment.save(using=mousedb_write)
+                    comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                    comment.save(using=mousedb_write)
+
+                    comment_work_request_ref = Comment_work_request_ref()
+                    comment_work_request_ref.comment_id = comment
+                    comment_work_request_ref.work_request_id = incident.incidentid
+                    comment_work_request_ref.save(using=mousedb_write)
                     if incident.sacrifice_reason:
 
                         # save token and send to Add to AniShare initiator to create sacrifice request

@@ -32,8 +32,8 @@ from tablib import Dataset
 
 from .filters import AnimalFilter, OrganFilter, ChangeFilter, PersonFilter, FishFilter, MouseFilter, PupFilter
 from .models import Animal, Organ, Change, FishPeople, Fish, Location, Person, Lab, FishPeople, FishTeam, FishMutation, FishRole
-from .models import Mouse, MouseMutation, PyratUser, PyratUserPermission, Pup 
-from .models import SacrificeIncidentToken, WIncident_write, WIncident, WIncidentanimals_write, WIncidentpups_write, WIncidentcomment, SearchRequestAnimal, Cached_work_request_subject_location
+from .models import Mouse, MouseMutation, PyratUser, PyratUserPermission, Pup , Comment, Comment_work_request_ref, PyratUser
+from .models import SacrificeIncidentToken, WIncident_write, WIncident, WIncidentanimals_write, WIncidentpups_write, SearchRequestAnimal, Cached_work_request_subject_location
 from .importscript import runimport
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.utils.html import strip_tags
@@ -845,19 +845,33 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
 
 
                         new_sacrifice_incident_tmp = WIncident.objects.using(MOUSEDB).get(incidentid=new_sacrifice_incident.incidentid) 
-                        new_comment = WIncidentcomment()
-                        new_comment.incidentid = new_sacrifice_incident_tmp
-                        new_comment.comment = 'AniShare: Request created. Previous AddToAniShare request is: {}'.format(previous_incident.incidentid)
-                        new_comment.save(using=MOUSEDB_WRITE) 
-                        new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
-                        new_comment.save(using=MOUSEDB_WRITE)
 
-                        new_comment = WIncidentcomment()
-                        new_comment.incidentid = previous_incident
-                        new_comment.comment = 'AniShare: Sacrifice request with id {} created'.format(new_sacrifice_incident.incidentid)
-                        new_comment.save(using=MOUSEDB_WRITE) 
-                        new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
-                        new_comment.save(using=MOUSEDB_WRITE)
+                        new_sacrifice_incident_tmp = WIncident.objects.using(MOUSEDB).get(incidentid=new_sacrifice_incident.incidentid) 
+                        comment = Comment()
+                        anishareuser = PyratUser.objects.using(MOUSEDB).get(username='AniShare')
+                        comment.creator_id = anishareuser
+                        comment.content = 'AniShare: Request created. Previous AddToAniShare request is: {}'.format(previous_incident.incidentid)
+                        comment.save(using=MOUSEDB_WRITE)
+                        comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                        comment.save(using=MOUSEDB_WRITE)
+
+                        comment_work_request_ref = Comment_work_request_ref()
+                        comment_work_request_ref.comment_id = comment
+                        comment_work_request_ref.work_request_id = new_sacrifice_incident_tmp
+                        comment_work_request_ref.save(using=MOUSEDB_WRITE)
+
+                        comment = Comment()
+                        anishareuser = PyratUser.objects.using(MOUSEDB).get(username='AniShare')
+                        comment.creator_id = anishareuser
+                        comment.content = 'AniShare: Sacrifice request with id {} created'.format(new_sacrifice_incident.incidentid)
+                        comment.save(using=MOUSEDB_WRITE)
+                        comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                        comment.save(using=MOUSEDB_WRITE)
+
+                        comment_work_request_ref = Comment_work_request_ref()
+                        comment_work_request_ref.comment_id = comment
+                        comment_work_request_ref.work_request_id = previous_incident
+                        comment_work_request_ref.save(using=MOUSEDB_WRITE)
 
                         for animal in animallist:
                             if (animal.animal_type == 'mouse'):
@@ -1061,19 +1075,33 @@ def ConfirmRequestAPI(request, token):### Change Status from a sacrifice work re
                             send_mail("AniShare ConfirmRequest", 'Fehler new_chached_work_request {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
 
                         new_sacrifice_incident_tmp = WIncident.objects.using(MOUSEDB).get(incidentid=new_sacrifice_incident.incidentid) 
-                        new_comment = WIncidentcomment()
-                        new_comment.incidentid = new_sacrifice_incident_tmp
-                        new_comment.comment = 'AniShare: Request created. Previous AddToAniShare request is: {}'.format(previous_incident.incidentid)
-                        new_comment.save(using=MOUSEDB_WRITE) 
-                        new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
-                        new_comment.save(using=MOUSEDB_WRITE)
+                        comment = Comment()
+                        anishareuser = PyratUser.objects.using(MOUSEDB).get(username='AniShare')
+                        comment.creator_id = anishareuser
+                        comment.content = 'AniShare: Request created. Previous AddToAniShare request is: {}'.format(previous_incident.incidentid)
+                        comment.save(using=MOUSEDB_WRITE)
+                        comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                        comment.save(using=MOUSEDB_WRITE)
 
-                        new_comment = WIncidentcomment()
-                        new_comment.incidentid = previous_incident
-                        new_comment.comment = 'AniShare: Sacrifice request with id {} created'.format(new_sacrifice_incident.incidentid)
-                        new_comment.save(using=MOUSEDB_WRITE) 
-                        new_comment.commentdate = new_comment.commentdate + timedelta(hours=TIMEDIFF)
-                        new_comment.save(using=MOUSEDB_WRITE)
+                        comment_work_request_ref = Comment_work_request_ref()
+                        comment_work_request_ref.comment_id = comment
+                        comment_work_request_ref.work_request_id = new_sacrifice_incident_tmp
+                        comment_work_request_ref.save(using=MOUSEDB_WRITE)
+                        
+                        
+                        comment = Comment()
+                        anishareuser = PyratUser.objects.using(MOUSEDB).get(username='AniShare')
+                        comment.creator_id = anishareuser
+                        comment.content = 'AniShare: Sacrifice request with id {} created'.format(new_sacrifice_incident.incidentid)
+                        comment.save(using=MOUSEDB_WRITE)
+                        comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                        comment.save(using=MOUSEDB_WRITE)
+
+                        comment_work_request_ref = Comment_work_request_ref()
+                        comment_work_request_ref.comment_id = comment
+                        comment_work_request_ref.work_request_id = previous_incident
+                        comment_work_request_ref.save(using=MOUSEDB_WRITE)
+
 
                         for animal in animallist:
                             if (animal.animal_type == 'mouse'):

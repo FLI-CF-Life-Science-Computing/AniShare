@@ -702,15 +702,32 @@ class WIncidentPups(models.Model):
         db_table = 'work_request_pup_ref'
 
 
-class WIncidentcomment(models.Model):
+#class WIncidentcomment(models.Model):
+#    incidentid      = models.ForeignKey('WIncident', models.DO_NOTHING, db_column='work_request_id', blank=True, null=True)
+#    comment         = models.TextField()
+#    commentdate     = models.DateTimeField(null=False, auto_now_add=True)
+#
+#    class Meta:
+#        managed = False
+#        db_table = 'comment_work_request_ref'
+
+class Comment(models.Model):
     id              = models.AutoField(db_column='id', primary_key=True)
-    incidentid      = models.ForeignKey('WIncident', models.DO_NOTHING, db_column='work_request_id', blank=True, null=True)
-    comment         = models.TextField()
-    commentdate     = models.DateTimeField(null=False, auto_now_add=True)
+    creator_id      = models.ForeignKey('PyratUser', models.DO_NOTHING, db_column='creator_id', blank=True, null=True)
+    created         = models.DateTimeField(null=False, auto_now_add=True)
+    origin          = models.CharField(max_length=20, blank=False, null=False, default='work_request',db_column='origin')
+    visible         = models.SmallIntegerField(blank=False, null=False, default=1,db_column='visible')
+    content         = models.TextField()
+    reply_pending   = models.SmallIntegerField(blank=False, null=False, default=0,db_column='reply_pending')
 
     class Meta:
         managed = False
-        db_table = 'comment_work_request_ref'
+        db_table = 'comment'
+
+class Comment_work_request_ref(models.Model):
+    comment_id      = models.ForeignKey('Comment', models.DO_NOTHING, db_column='comment_id', blank=True, null=True)
+    work_request_id = models.IntegerField(db_column='work_request_id', blank=True, null=True)
+
 
 class WIncidentanimals_write(models.Model):
     id              = models.AutoField(db_column='id', primary_key=True)
