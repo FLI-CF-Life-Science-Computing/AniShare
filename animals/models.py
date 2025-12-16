@@ -727,6 +727,10 @@ class Comment(models.Model):
 class Comment_work_request_ref(models.Model):
     comment_id      = models.ForeignKey('Comment', models.DO_NOTHING, db_column='comment_id', blank=True, null=True)
     work_request_id = models.IntegerField(db_column='work_request_id', blank=True, null=True)
+    
+    class Meta:
+        managed = False
+        db_table = 'Comment_work_request_ref'
 
 
 class WIncidentanimals_write(models.Model):
