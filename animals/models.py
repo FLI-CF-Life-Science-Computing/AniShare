@@ -730,7 +730,7 @@ class Comment_work_request_ref(models.Model):
     
     class Meta:
         managed = False
-        db_table = 'Comment_work_request_ref'
+        db_table = 'comment_work_request_ref'
 
 
 class WIncidentanimals_write(models.Model):
