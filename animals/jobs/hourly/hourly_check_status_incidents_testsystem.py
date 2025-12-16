@@ -131,7 +131,7 @@ class Job(HourlyJob):
                     comment.save(using=mousedb_write)
 
                     comment_work_request_ref = Comment_work_request_ref()
-                    comment_work_request_ref.comment_id = comment
+                    comment_work_request_ref.comment_id = comment.id
                     comment_work_request_ref.work_request_id = incident.incidentid
                     comment_work_request_ref.save(using=mousedb_write)
                     if incident.sacrifice_reason:

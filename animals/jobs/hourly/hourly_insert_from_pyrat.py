@@ -102,7 +102,7 @@ class Job(HourlyJob):
                             comment.save(using=mousedb_write)
 
                             comment_work_request_ref = Comment_work_request_ref()
-                            comment_work_request_ref.comment_id = comment
+                            comment_work_request_ref.comment_id = comment.id
                             comment_work_request_ref.work_request_id = incident.incidentid
                             comment_work_request_ref.save(using=mousedb_write)
                             send_mail("AniShare: Mouse without license", 'You created a work request with the ID {} to add the mouse {} to AniShare. It is not possible to import a mouse without a license. '.format(incident.incidentid, pyratmouse.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
@@ -201,7 +201,7 @@ class Job(HourlyJob):
                             comment.save(using=mousedb_write)
 
                             comment_work_request_ref = Comment_work_request_ref()
-                            comment_work_request_ref.comment_id = comment
+                            comment_work_request_ref.comment_id = comment.id
                             comment_work_request_ref.work_request_id = incident.incidentid
                             comment_work_request_ref.save(using=mousedb_write)
 
@@ -293,7 +293,7 @@ class Job(HourlyJob):
                     comment.save(using=mousedb_write)
 
                     comment_work_request_ref = Comment_work_request_ref()
-                    comment_work_request_ref.comment_id = comment
+                    comment_work_request_ref.comment_id = comment.id
                     comment_work_request_ref.work_request_id = incident.incidentid
                     comment_work_request_ref.save(using=mousedb_write)
                 

@@ -856,7 +856,7 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
                         comment.save(using=MOUSEDB_WRITE)
 
                         comment_work_request_ref = Comment_work_request_ref()
-                        comment_work_request_ref.comment_id = comment
+                        comment_work_request_ref.comment_id = comment.id
                         comment_work_request_ref.work_request_id = new_sacrifice_incident_tmp
                         comment_work_request_ref.save(using=MOUSEDB_WRITE)
 
@@ -869,7 +869,7 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
                         comment.save(using=MOUSEDB_WRITE)
 
                         comment_work_request_ref = Comment_work_request_ref()
-                        comment_work_request_ref.comment_id = comment
+                        comment_work_request_ref.comment_id = comment.id
                         comment_work_request_ref.work_request_id = previous_incident
                         comment_work_request_ref.save(using=MOUSEDB_WRITE)
 
@@ -1084,7 +1084,7 @@ def ConfirmRequestAPI(request, token):### Change Status from a sacrifice work re
                         comment.save(using=MOUSEDB_WRITE)
 
                         comment_work_request_ref = Comment_work_request_ref()
-                        comment_work_request_ref.comment_id = comment
+                        comment_work_request_ref.comment_id = comment.id
                         comment_work_request_ref.work_request_id = new_sacrifice_incident_tmp
                         comment_work_request_ref.save(using=MOUSEDB_WRITE)
                         
@@ -1098,7 +1098,7 @@ def ConfirmRequestAPI(request, token):### Change Status from a sacrifice work re
                         comment.save(using=MOUSEDB_WRITE)
 
                         comment_work_request_ref = Comment_work_request_ref()
-                        comment_work_request_ref.comment_id = comment
+                        comment_work_request_ref.comment_id = comment.id
                         comment_work_request_ref.work_request_id = previous_incident
                         comment_work_request_ref.save(using=MOUSEDB_WRITE)
 

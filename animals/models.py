@@ -725,8 +725,8 @@ class Comment(models.Model):
         db_table = 'comment'
 
 class Comment_work_request_ref(models.Model):
-    comment_id      = models.ForeignKey('Comment', models.DO_NOTHING, db_column='comment_id', blank=True, null=True)
-    work_request_id = models.IntegerField(db_column='work_request_id', blank=True, null=True)
+    comment_id      = models.IntegerField(primary_key=True, db_column='comment_id')
+    work_request_id = models.IntegerField(db_column='work_request_id', blank=False, null=False)
     
     class Meta:
         managed = False
