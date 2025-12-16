@@ -736,7 +736,7 @@ class Comment_work_request_ref(models.Model):
 class WIncidentanimals_write(models.Model):
     id              = models.AutoField(db_column='id', primary_key=True)
     incidentid      = models.ForeignKey('WIncident_write', models.DO_NOTHING, db_column='work_request_id', blank=True, null=True)
-    animalid        = models.IntegerField(db_column='animalid',blank=False, null=False)
+    animalid        = models.IntegerField(db_column='animal_id',blank=False, null=False)
     perform_status  = models.CharField(max_length=20, blank=False, null=False,db_column='perform_status')
 
     class Meta:
