@@ -134,6 +134,24 @@ class Job(HourlyJob):
                     comment_work_request_ref.comment_id = comment.id
                     comment_work_request_ref.work_request_id = incident.incidentid
                     comment_work_request_ref.save(using=mousedb_write)
+
+                                        # extend offer period to 4 years
+                    try:
+                        for pyratmouse in animallist:
+                            animouse = Animal.objects.get(mouse_id=pyratmouse.animalid)
+                            animouse.available_to = animouse.available_to + timedelta(days=365*4)
+                            animouse.save()
+                        for pyratpup in puplist:
+                            anipup = Animal.objects.get(pup_id=pyratpup.pupid)
+                            anipup.available_to = anipup.available_to + timedelta(days=365*4)
+                            anipup.save()
+                    except BaseException as e:  
+                        logger.error('{}: AniShare Importscriptfehler hourly_check_status_incidents_testsystem.py: Fehler {} in Zeile {}'.format(datetime.now(),e, sys.exc_info()[2].tb_lineno)) 
+                        ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
+                        send_mail("AniShare Importscriptfehler hourly_check_status_incidents_testsystem.py", 'Fehler {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
+                    
+
+
                     if incident.sacrifice_reason:
 
                         # save token and send to Add to AniShare initiator to create sacrifice request

@@ -238,6 +238,7 @@ def send_email_animal(request):
     #msg.content_subtype = "html"
     #msg.mixed_subtype = 'related'
     #msg.send()
+    animal.available_to = datetime.today().date()
     animal.save()  # Save the animal with the new owner
     if amount_difference > 0:  # If there were multiple animals, save the remainder of animals as a new object
         animal.pk = None
@@ -753,8 +754,8 @@ def ConfirmRequest(request, token):### Change Status from a sacrifice work reque
                 if ((request.user.username == sIncidentToken.initiator) or (user_confirmed == 1)):
                     if sIncidentToken.confirmed:
                         message = "Request is already created. A second time is not possible"
-                    elif (sIncidentToken.created + timedelta(days=15) < datetime.now(sIncidentToken.created.tzinfo)): # Request expired
-                        message = "The Link is expired because the AddToAniShare request has expired more than 14 days ago. You can create a sacrifice request directly inside PyRAT."
+                    elif (sIncidentToken.created + timedelta(days=365) < datetime.now(sIncidentToken.created.tzinfo)): # Request expired
+                        message = "The Link is expired because the AddToAniShare request has expired more than 365 days ago. You can create a sacrifice request directly inside PyRAT."
                     else:
                         MOUSEDB= getattr(settings, "MOUSEDB", None)
                         previous_incident = WIncident.objects.using(MOUSEDB).get(incidentid = sIncidentToken.incidentid) 
@@ -1250,11 +1251,13 @@ def send_email_animals(request):  # send a mail to the responsible persons of th
                 else:
                     messages.add_message(request, messages.SUCCESS, 'An Email has been sent to <{}> and <{}>.'.format(sAnimal.responsible_person.email, sAnimal.responsible_person2.email))
                 sAnimal.new_owner = email # save the new owner = mail address of the claiming user
+                sAnimal.available_to = datetime.today().date()
                 sAnimal.save()
                 messages.add_message(request, messages.SUCCESS,'The entry {} has been claimed by {}.'.format(sAnimal.pk, sAnimal.new_owner))
                 logger.info('{} The entry {} has been claimed by {}.'.format(datetime.now(), sAnimal.pk, sAnimal.new_owner))
             else:
                 sAnimal.new_owner = email
+                sAnimal.available_to = datetime.today().date()
                 sAnimal.save()
                 messages.add_message(request, messages.SUCCESS,'The entry {} has been claimed by {}.'.format(sAnimal.pk, sAnimal.new_owner))
                 logger.info('{} The entry {} has been claimed by {}.'.format(datetime.now(), sAnimal.pk, sAnimal.new_owner))

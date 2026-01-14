@@ -393,6 +393,7 @@ class MouseAll(models.Model):
     sex = models.CharField(db_column='sex', max_length=2, choices=(('m', 'male'), ('f', 'female'), ('u', 'unknown')),
                            help_text='Select "unknown" if multiple animals.')
     dob = models.DateField(db_column='dateborn')
+    state = models.CharField(db_column='state', max_length=10, choices=(('live', 'live'), ('sacrificed', 'sacrificed'), ('exported', 'exported')))
     #notes = models.CharField(db_column='NOTES', max_length=4000)
     responsible = models.CharField(db_column='fullname', max_length=512)
     #responsible_firstname = models.CharField(db_column='firstname', max_length=512)
@@ -451,6 +452,37 @@ class Pup(models.Model):
     class Meta:
         managed = False
         db_table = 'v_pup'
+
+class PupAll(models.Model):
+    id      = models.IntegerField(db_column='id', primary_key=True)
+    eartag  = models.CharField(db_column='eartag', max_length=255)
+    sex = models.CharField(db_column='sex', max_length=2, choices=(('m', 'male'), ('f', 'female'), ('u', 'unknown')),
+                           help_text='Select "unknown" if multiple animals.')
+    dob = models.DateField(db_column='dateborn')
+    state = models.CharField(db_column='state', max_length=10, choices=(('live', 'live'), ('sacrificed', 'sacrificed'), ('exported', 'exported')))
+    responsible = models.CharField(db_column='fullname', max_length=512)
+    responsible_email = models.CharField(db_column='email', max_length=512)
+    location = models.CharField(db_column='building', max_length=4000)
+    licence = models.CharField(db_column='licence', max_length=255)
+    strain = models.CharField(db_column='strain', max_length=255)
+    labid = models.CharField(db_column='labid', max_length=255)
+    genetic_bg = models.CharField(db_column='genetic_bg', max_length=255)
+    owner_id = models.IntegerField(db_column='owner_id',)
+    owner = models.CharField(db_column='owner', max_length=255)
+    mutation = models.CharField(db_column='mutation', max_length=512)
+    project = models.CharField(db_column='projectname', max_length=512)
+
+    def age(self):
+        """
+        Return the age of the animal, calculated by the difference to either
+        the current date or the available_to date
+        """
+        now = datetime.today().date()
+        return int((now - self.dob).days / 7)
+
+    class Meta:
+        managed = False
+        db_table = 'v_pup_full'
 
 
 class PyratUserPermission(models.Model):

@@ -61,10 +61,27 @@ class Job(HourlyJob):
                 
                 # Import mice #
                 animallist = WIncidentAnimals.objects.using(mousedb).filter(incidentid = incident.incidentid)
+                notimportedmice = 0
                 for pyratmouse in animallist:
                     try:
                         if Animal.objects.filter(mouse_id=pyratmouse.animalid).exists(): # Check if mouse has already been imported
                             ani_mouse = Animal.objects.get(mouse_id=pyratmouse.animalid)  # Get AniShare mouse that has already been imported
+                            if ani_mouse.available_to >= datetime.today().date(): # Check if mouse is already available in AniShare:
+                                comment = Comment()
+                                anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
+                                comment.creator_id = anishareuser
+                                comment.content = 'AniShare: Mouse {} is already offered'.format(pyratmouse.animalid)
+                                comment.save(using=mousedb_write)
+                                comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                                comment.save(using=mousedb_write)
+
+                                comment_work_request_ref = Comment_work_request_ref()
+                                comment_work_request_ref.comment_id = comment.id
+                                comment_work_request_ref.work_request_id = incident.incidentid
+                                comment_work_request_ref.save(using=mousedb_write)
+                                send_mail("AniShare: Mouse already offered", 'You created a work request with the ID {} to add the mouse {} to AniShare. The mouse is already offered and will not be imported again '.format(incident.incidentid, pyratmouse.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                                notimportedmice += 1
+                                continue
                             if ani_mouse.pyrat_incidentid: # Save the original PyRAT request id using the comment field
                                 if ani_mouse.comment:
                                     ani_mouse.comment = ani_mouse.comment + "Ursprünglich über AddToAniShare Auftrag: {} importiert; ".format(ani_mouse.pyrat_incidentid)
@@ -169,11 +186,34 @@ class Job(HourlyJob):
                 
                 # Import pups #
                 puplist = WIncidentPups.objects.using(mousedb).filter(incidentid = incident.incidentid)
+                notimportedpups = 0
                 for pyratpup in puplist:
                     try:
                         dataset = Pup.objects.using(mousedb).get(id=pyratpup.pupid)
                         if Animal.objects.filter(pup_id=pyratpup.pupid).exists():
                             ani_mouse = Animal.objects.get(pup_id=pyratpup.pupid)  # Get AniShare mouse that has already been imported
+                            if ani_mouse.available_to >= datetime.today().date(): # Check if mouse is already available in AniShare:
+                                comment = Comment()
+                                anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
+                                comment.creator_id = anishareuser
+                                if dataset.eartag:
+                                    comment.content = 'Pup {} is already offered'.format(dataset.eartag)
+                                    send_mail("AniShare: Pup already offered", 'You created a work request with the ID {} to add the pup {} to AniShare. The pup is already offered and will not be imported again.'.format(incident.incidentid, dataset.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                                else:
+                                    comment.content = 'Pup {} is already offered'.format(pyratpup.pupid)
+                                    send_mail("AniShare: Pup already offered", 'You created a work request with the ID {} to add the pup {} to AniShare. The pup is already offered and will not be imported again.'.format(incident.incidentid, dataset.id), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                                comment.save(using=mousedb_write)
+                                comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                                comment.save(using=mousedb_write)
+
+                                comment_work_request_ref = Comment_work_request_ref()
+                                comment_work_request_ref.comment_id = comment.id
+                                comment_work_request_ref.work_request_id = incident.incidentid
+                                comment_work_request_ref.save(using=mousedb_write)
+
+                                notimportedpups += 1
+                                continue
+
                             if ani_mouse.pyrat_incidentid: # Save the original PyRAT request id using the comment field
                                 ani_mouse.comment = ani_mouse.comment + "Ursprünglich über AddToAniShare Auftrag: {} importiert;".format(ani_mouse.pyrat_incidentid)
                             ani_mouse.new_owner =""
@@ -279,6 +319,26 @@ class Job(HourlyJob):
                     incident_write.save(using=mousedb_write) 
                     logger.debug('{}: Incident status {} has been changed to deferred.'.format(datetime.now(), incident.incidentid))
                     send_mail("AniShare: AddToAniShare request set to deferred", 'You created a PyRAT AddToAniShare request with the ID {} but the import process failed and the request is set to deferred. Please check this work request.'.format(incident.incidentid), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])           
+                    
+                elif (len(puplist)+len(animallist)) == (notimportedpups + notimportedmice): # all mice and pups are already imported
+                    incident_write = WIncident_write.objects.using(mousedb_write).get(incidentid=incident.incidentid)
+                    incident_write.status = 1
+                    incident_write.closedate = datetime.now()
+                    incident_write.save(using=mousedb_write)
+                    logger.debug('{}: Incident status {} has been changed to 1 = closed.'.format(datetime.now(), incident.incidentid))
+                    comment = Comment()
+                    anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
+                    comment.creator_id = anishareuser
+                    comment.content = 'AniShare: Request changed to closed because all animals were already imported.'
+                    comment.save(using=mousedb_write)
+                    comment.created = comment.created + timedelta(hours=TIMEDIFF)
+                    comment.save(using=mousedb_write)
+
+                    comment_work_request_ref = Comment_work_request_ref()
+                    comment_work_request_ref.comment_id = comment.id
+                    comment_work_request_ref.work_request_id = incident.incidentid
+                    comment_work_request_ref.save(using=mousedb_write)
+
                 elif (error == 0 and count_animals_deferred == 0):
                     incident_write = WIncident_write.objects.using(mousedb_write).get(incidentid=incident.incidentid)
                     incident_write.status = 5 # Added to AniShare
