@@ -183,7 +183,7 @@ class Job(HourlyJob):
                             logger.debug('Mail Confirmation sacrifice request an {} mit Link {} gesendet'.format(recipient,sacrifice_link))
                  
         except BaseException as e:  
-            logger.error('{}: AniShare Importscriptfehler hourly_check_status_incidents.py: Fehler {} in Zeile {}'.format(datetime.now(),e, sys.exc_info()[2].tb_lineno)) 
+            logger.error('{}: AniShare Importscriptfehler hourly_check_status_incidents_testsystem.py: Fehler {} in Zeile {}'.format(datetime.now(),e, sys.exc_info()[2].tb_lineno)) 
             ADMIN_EMAIL = getattr(settings, "ADMIN_EMAIL", None)
-            send_mail("AniShare Importscriptfehler hourly_check_status_incidents.py", 'Fehler {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
+            send_mail("AniShare Importscriptfehler hourly_check_status_incidents_testsystem.py", 'Fehler {} in Zeile {}'.format(e,sys.exc_info()[2].tb_lineno), ADMIN_EMAIL, [ADMIN_EMAIL])
         management.call_command("clearsessions")

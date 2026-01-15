@@ -118,10 +118,12 @@ class Job(HourlyJob):
                         for pyratmouse in animallist:
                             animouse = Animal.objects.get(mouse_id=pyratmouse.animalid)
                             animouse.available_to = animouse.available_to + timedelta(days=365*4)
+                            logger.debug('{}: Mouse {} offer period extended.'.format(datetime.now(),animouse.mouse_id))
                             animouse.save()
                         for pyratpup in puplist:
                             anipup = Animal.objects.get(pup_id=pyratpup.pupid)
                             anipup.available_to = anipup.available_to + timedelta(days=365*4)
+                            logger.debug('{}: Pup {} offer period extended.'.format(datetime.now(),anipup.pup_id))
                             anipup.save()
                     except BaseException as e:  
                         logger.error('{}: AniShare Importscriptfehler hourly_check_status_incidents.py: Fehler {} in Zeile {}'.format(datetime.now(),e, sys.exc_info()[2].tb_lineno)) 
