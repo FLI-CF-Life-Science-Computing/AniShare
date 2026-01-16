@@ -219,7 +219,7 @@ class Job(HourlyJob):
                             ani_mouse.new_owner =""
                             ani_mouse.pyrat_incidentid = incident.incidentid # Save the new PyRAT request id
                             ani_mouse.available_from = datetime.today().date()
-                            ani_mouse.available_to   = datetime.today().date() + timedelta(days=7)
+                            ani_mouse.available_to   = datetime.today().date() + timedelta(days=14)
                             ani_mouse.save()
                             continue
                         new_pup = Animal()
@@ -257,7 +257,7 @@ class Job(HourlyJob):
                         new_pup.pyrat_incidentid = incident.incidentid
                         new_pup.genetic_background  = dataset.genetic_bg
                         new_pup.available_from = datetime.today().date()
-                        new_pup.available_to   = datetime.today().date() + timedelta(days=7)
+                        new_pup.available_to   = datetime.today().date() + timedelta(days=14)
                         new_pup.licence_number = dataset.licence
                         if "§11" in dataset.licence:
                             new_pup.licence_paragraph11 = True
