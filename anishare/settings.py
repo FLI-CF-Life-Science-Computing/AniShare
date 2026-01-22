@@ -57,7 +57,6 @@ INSTALLED_APPS = [
    # 'admin_interface',  # https://github.com/fabiocaccamo/django-admin-interface
     'colorfield',
     'django_admin_listfilter_dropdown',
-    'bootstrap_email',
     'django_extensions', # for jobs scheduling
     'simple_history',
     'adminrestrict',
@@ -225,8 +224,9 @@ MOUSEDB = False  # Name of the mouse database AniShare uses to connect
 FISHDB = False # True if there is a connection to a fish database / False if there isn't a connection
 try:
     from .local_settings import *
-except ImportError:
-    print("Could not import local_settings!")
+#except ImportError:
+except BaseException as e:
+    print("Could not import local_settings!:{} ".format(e))
     pass
 
 ADMIN_REORDER = (
