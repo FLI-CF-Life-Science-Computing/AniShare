@@ -79,7 +79,7 @@ class Job(HourlyJob):
                                 comment_work_request_ref.comment_id = comment.id
                                 comment_work_request_ref.work_request_id = incident.incidentid
                                 comment_work_request_ref.save(using=mousedb_write)
-                                send_mail("AniShare: Mouse already offered", 'You created a work request with the ID {} to add the mouse {} to AniShare. The mouse is already offered and will not be imported again '.format(incident.incidentid, pyratmouse.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                                send_mail("AniShare: Mouse already offered", 'You created a work request with the ID {} to add the mouse {} to AniShare. The mouse is already offered and will not be imported again '.format(incident.incidentid, pyratmouse.animalid), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                                 notimportedmice += 1
                                 continue
                             if ani_mouse.pyrat_incidentid: # Save the original PyRAT request id using the comment field
