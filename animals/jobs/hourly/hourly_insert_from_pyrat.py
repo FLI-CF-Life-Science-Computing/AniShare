@@ -70,7 +70,7 @@ class Job(HourlyJob):
                                 comment = Comment()
                                 anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
                                 comment.creator_id = anishareuser
-                                comment.content = 'AniShare: Mouse {} is already offered'.format(pyratmouse.animalid)
+                                comment.content = 'AniShare: Mouse {} is already offered'.format(ani_mouse.database_id)
                                 comment.save(using=mousedb_write)
                                 comment.created = comment.created + timedelta(hours=TIMEDIFF)
                                 comment.save(using=mousedb_write)
@@ -79,7 +79,7 @@ class Job(HourlyJob):
                                 comment_work_request_ref.comment_id = comment.id
                                 comment_work_request_ref.work_request_id = incident.incidentid
                                 comment_work_request_ref.save(using=mousedb_write)
-                                send_mail("AniShare: Mouse already offered", 'You created a work request with the ID {} to add the mouse {} to AniShare. The mouse is already offered and will not be imported again '.format(incident.incidentid, pyratmouse.animalid), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                                send_mail("AniShare: Mouse already offered", 'You created a work request with the ID {} to add the mouse {} to AniShare. The mouse is already offered and will not be imported again '.format(incident.incidentid, ani_mouse.database_id), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                                 notimportedmice += 1
                                 continue
                             if ani_mouse.pyrat_incidentid: # Save the original PyRAT request id using the comment field
@@ -197,10 +197,10 @@ class Job(HourlyJob):
                                 anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
                                 comment.creator_id = anishareuser
                                 if dataset.eartag:
-                                    comment.content = 'Pup {} is already offered'.format(dataset.eartag)
-                                    send_mail("AniShare: Pup already offered", 'You created a work request with the ID {} to add the pup {} to AniShare. The pup is already offered and will not be imported again.'.format(incident.incidentid, dataset.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                                    comment.content = 'Pup {} is already offered'.format(ani_mouse.database_id)
+                                    send_mail("AniShare: Pup already offered", 'You created a work request with the ID {} to add the pup {} to AniShare. The pup is already offered and will not be imported again.'.format(incident.incidentid, ani_mouse.database_id), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                                 else:
-                                    comment.content = 'Pup {} is already offered'.format(pyratpup.pupid)
+                                    comment.content = 'Pup {} is already offered'.format(ani_mouse.database_id)
                                     send_mail("AniShare: Pup already offered", 'You created a work request with the ID {} to add the pup {} to AniShare. The pup is already offered and will not be imported again.'.format(incident.incidentid, dataset.id), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                                 comment.save(using=mousedb_write)
                                 comment.created = comment.created + timedelta(hours=TIMEDIFF)
@@ -232,10 +232,10 @@ class Job(HourlyJob):
  
                             if dataset.eartag:
                                 comment.content = 'Pup {} without licence can not be imported'.format(dataset.eartag)
-                                send_mail("AniShare: Pup without license", 'You created a work request with the ID {} to add the pup {} to AniShare. It is not possible to import a pup without a license. '.format(incident.incidentid, dataset.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                                send_mail("AniShare: Pup without license", 'You created a work request with the ID {} to add the pup {} to AniShare. It is not possible to import a pup without a license. '.format(incident.incidentid, ani_mouse.database_id), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                             else:
                                 comment.content = 'Pup {} without licence can not be imported'.format(pyratpup.pupid)
-                                send_mail("AniShare: Pup without license", 'You created a work request with the ID {} to add the pup {} to AniShare. It is not possible to import a pup without a license. '.format(incident.incidentid, dataset.id), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                                send_mail("AniShare: Pup without license", 'You created a work request with the ID {} to add the pup {} to AniShare. It is not possible to import a pup without a license. '.format(incident.incidentid, ani_mouse.database_id), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                             comment.save(using=mousedb_write)
                             comment.created = comment.created + timedelta(hours=TIMEDIFF)
                             comment.save(using=mousedb_write)
