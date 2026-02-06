@@ -81,7 +81,6 @@ MIDDLEWARE = [
     'admin_reorder.middleware.ModelAdminReorder',
     'simple_history.middleware.HistoryRequestMiddleware',
     'defender.middleware.FailedLoginMiddleware',
-    'defender.middleware.FailedLoginMiddleware',
     'django_currentuser.middleware.ThreadLocalUserMiddleware',
 ]
 

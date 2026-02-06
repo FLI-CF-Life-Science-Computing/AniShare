@@ -49,14 +49,10 @@ organizations are required to purchase a license. By downloading the
 package you agree with conditions of the FLI Software License Agreement
 for Academic Non-commercial Research (LICENSE.pdf).
 
-Public demo version
-============
-You can try a limited version from AniShare using the public instance [https://anishare-demo.leibniz-fli.de](https://anishare-demo.leibniz-fli.de) with the user/password admin.
-The demo isn't connected to an animal management system like PyRAT or tick@lab. Because of this, some important functions of AniShare cannot be tried out.
 
 Installation 
 ============
-You can use the docker container [https://hub.docker.com/r/lscit/anishare](https://hub.docker.com/r/lscit/anishare) to test AniShare locally. 
+You can use the docker container [https://hub.docker.com/r/lscit/anishare](https://hub.docker.com/r/lscit/anishare) to test AniShare locally. However, the container is only updated irregularly. The best way is to send a short inquiry.  
 Please note the instructions on the linked website how to run the container.
 For productive use we suggest to use the source files, adapt it to your needs and deploy AniShare using apache or gunicorn. 
 Please note the installation instructions file (installation_instructions.txt).
@@ -423,16 +419,6 @@ manager*, by setting these values (*staff* and group *animal manager*):
 
 ![image](doc/img/admin_permissions_user.png)
 
-Anishare change history
------------------------
-
-New functions and bugfix at the system should be documented. So users
-can be informed about changes on the system. All changes are visible to
-authenticated users. Please refeer to the site [AniShare Change
-History](https://anishare.leibniz-fli.de/changehistory/) to see all
-changes. Furthermore it\'s possible to subscribe to the [Anishare
-Version Feed](https://anishare.leibniz-fli.de/changehistory/feed) to
-stay informed.
 
 UML Model
 ---------

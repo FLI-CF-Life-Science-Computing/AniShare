@@ -56,7 +56,7 @@ class Job(HourlyJob):
                         else:
                             animouse = Animal.objects.get(mouse_id=pyratmouse.animalid)
                         if (animouse.new_owner):
-                            logger.debug('anipup.new_owner=1')
+                            logger.debug('{} Work Request: {}, {} mouse has been claimed.'.format(datetime.now(), incident.incidentid, animouse.database_id))
                             continue
                         if (animouse.available_to >= today):
                             skip = 1
@@ -74,6 +74,7 @@ class Job(HourlyJob):
                             continue
                         anipup = Animal.objects.get(pup_id=pyratpup.pupid)
                         if (anipup.new_owner):
+                            logger.debug('{} Work Request: {}, {} pup has been claimed.'.format(datetime.now(), incident.incidentid, anipup.database_id))
                             continue
                         if (anipup.available_to >= today):
                             skip = 1
@@ -118,12 +119,12 @@ class Job(HourlyJob):
                         for pyratmouse in animallist:
                             animouse = Animal.objects.get(mouse_id=pyratmouse.animalid)
                             animouse.available_to = animouse.available_to + timedelta(days=365*4)
-                            logger.debug('{}: Mouse {} offer period extended.'.format(datetime.now(),animouse.mouse_id))
+                            logger.debug('{}: Mouse {} offer period extended.'.format(datetime.now(),animouse.database_id))
                             animouse.save()
                         for pyratpup in puplist:
                             anipup = Animal.objects.get(pup_id=pyratpup.pupid)
                             anipup.available_to = anipup.available_to + timedelta(days=365*4)
-                            logger.debug('{}: Pup {} offer period extended.'.format(datetime.now(),anipup.pup_id))
+                            logger.debug('{}: Pup {} offer period extended.'.format(datetime.now(),anipup.database_id))
                             anipup.save()
                     except BaseException as e:  
                         logger.error('{}: AniShare Importscriptfehler hourly_check_status_incidents.py: Fehler {} in Zeile {}'.format(datetime.now(),e, sys.exc_info()[2].tb_lineno)) 
@@ -132,13 +133,6 @@ class Job(HourlyJob):
                     
                     if incident.sacrifice_reason:
 
-                        # save token and send to Add to AniShare initiator to create sacrifice request
-                        new_sacrifice_incident_token            = SacrificeIncidentToken()
-                        new_sacrifice_incident_token.initiator  = incident.initiator.username
-                        new_sacrifice_incident_token.incidentid = incident.incidentid
-                        signer = Signer()
-                        new_sacrifice_incident_token.urltoken   = signer.sign("{}".format(incident.incidentid))
-                        new_sacrifice_incident_token.save()
                         
                         # Send email to initiator to confirm sacrifice request
                         animallist = Animal.objects.filter(pyrat_incidentid = incident.incidentid)
@@ -150,6 +144,14 @@ class Job(HourlyJob):
                                 animallist = animallist.exclude(pk=animal.pk) 
                             i = i + 1
                         if len(animallist) > 0:
+                            # save token and send to Add to AniShare initiator to create sacrifice request
+                            new_sacrifice_incident_token            = SacrificeIncidentToken()
+                            new_sacrifice_incident_token.initiator  = incident.initiator.username
+                            new_sacrifice_incident_token.incidentid = incident.incidentid
+                            signer = Signer()
+                            new_sacrifice_incident_token.urltoken   = signer.sign("{}".format(incident.incidentid))
+                            new_sacrifice_incident_token.save()
+
                             initiator_name = "{} {}".format(incident.initiator.firstname,incident.initiator.lastname)
                             sacrifice_link = "{}/{}/{}".format(settings.DOMAIN,"confirmsacrificerequest",new_sacrifice_incident_token.urltoken)
                             message = render_to_string('email_animals_sacrifice.html',{'animals':animallist, 'initiator':initiator_name, 'sacrifice_link':sacrifice_link})
