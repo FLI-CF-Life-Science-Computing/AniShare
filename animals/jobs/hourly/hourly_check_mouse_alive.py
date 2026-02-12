@@ -29,7 +29,7 @@ class Job(HourlyJob):
                     if MouseAll.objects.using(mousedb).filter(id=animouse.mouse_id).filter(state='live').exists(): # if mouse is alive
                         continue
                     else:
-                        animouse.available_to = datetime.now().date()
+                        animouse.available_to = datetime.now().date() - timedelta(days=1)
                         animouse.comment = '{}\n{}: Mouse is no longer alive or at the institute'.format(animouse.comment, datetime.now())
                         animouse.save()
                         logger.debug('{}: Mouse {} is no longer alive.'.format(datetime.now(),animouse.mouse_id))
