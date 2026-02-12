@@ -34,7 +34,7 @@ DATABASES = {
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static_collected")
 
-DEBUG = False # SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True # SECURITY WARNING: don't run with debug turned on in production!
 SHOW_ORGANS = False # if 1 there is a link to view offered Organs
 TEST_ENVIRONMENT = False # if 1 there will be a hint for the users that it is a test environment
 MOUSEDB = False  # Name of the mouse database AniShare uses to connect
@@ -43,3 +43,8 @@ SEND_EMAIL_ADDRESS = '' # The sender address AniShare uses to inform the users
 PYRAT_API_URL = '' # e.g. https://mypyrat.mydomain.de/api/v3
 PYRAT_CLIENT_ID  = ''
 PYRAT_CLIENT_PASSWORD = '' 
+
+
+ADMIN_EMAIL = '' # The admin email AniShare uses to inform about errors
+DOMAIN = ''
+ADMINRESTRICT_ALLOW_PRIVATE_IP=True #https://github.com/robromano/django-adminrestrict
