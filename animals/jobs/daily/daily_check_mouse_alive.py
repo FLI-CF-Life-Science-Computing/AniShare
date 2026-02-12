@@ -1,7 +1,7 @@
-from django_extensions.management.jobs import HourlyJob
+from django_extensions.management.jobs import DailyJob
 
 
-class Job(HourlyJob):
+class Job(DailyJob):
     help = ""
 
 
