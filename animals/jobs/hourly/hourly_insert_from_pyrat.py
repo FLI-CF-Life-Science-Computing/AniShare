@@ -87,6 +87,13 @@ class Job(HourlyJob):
                                     ani_mouse.comment = ani_mouse.comment + "Ursprünglich über AddToAniShare Auftrag: {} importiert; ".format(ani_mouse.pyrat_incidentid)
                                 else:
                                     ani_mouse.comment = "Ursprünglich über AddToAniShare Auftrag: {} importiert; ".format(ani_mouse.pyrat_incidentid)
+                                try:
+                                    pmouse = Mouse.objects.using(mousedb).get(id=pyratmouse.animalid)
+                                    if pmouse.eartag!= ani_mouse.database_id:
+                                        ani_mouse.database_id = pmouse.eartag
+                                        ani_mouse.comment = "{}\n {} Database ID von {} auf {} angepasst".format(ani_mouse.comment, datetime.today().date(), ani_mouse.database_id, pmouse.eartag)
+                                except Exception as e:
+                                    logger.debug('Error while updating database_id: {} in Zeile {}'.format(e, sys.exc_info()[2].tb_lineno))
                             ani_mouse.new_owner = ""
                             ani_mouse.pyrat_incidentid = incident.incidentid # Save the new PyRAT request id
                             ani_mouse.available_from = datetime.today().date()
@@ -216,6 +223,13 @@ class Job(HourlyJob):
 
                             if ani_mouse.pyrat_incidentid: # Save the original PyRAT request id using the comment field
                                 ani_mouse.comment = ani_mouse.comment + "Ursprünglich über AddToAniShare Auftrag: {} importiert;".format(ani_mouse.pyrat_incidentid)
+                                try:
+                                    ppup = Mouse.objects.using(mousedb).get(id=dataset.id)
+                                    if ppup.eartag != ani_mouse.database_id:
+                                        ani_mouse.database_id = ppup.eartag
+                                        ani_mouse.comment = "{}\n {} Database ID von {} auf {} angepasst".format(ani_mouse.comment, datetime.today().date(), ani_mouse.database_id, ppup.eartag)
+                                except Exception as e:
+                                    logger.debug('Error while updating database_id: {} in Zeile {}'.format(e, sys.exc_info()[2].tb_lineno))
                             ani_mouse.new_owner =""
                             ani_mouse.pyrat_incidentid = incident.incidentid # Save the new PyRAT request id
                             ani_mouse.available_from = datetime.today().date()
