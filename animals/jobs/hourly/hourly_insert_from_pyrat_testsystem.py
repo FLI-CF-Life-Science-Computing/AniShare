@@ -68,7 +68,7 @@ class Job(HourlyJob):
                     try:
                         if Animal.objects.filter(mouse_id=pyratmouse.animalid).exists(): # Check if mouse has already been imported
                             ani_mouse = Animal.objects.get(mouse_id=pyratmouse.animalid)  # Get AniShare mouse that has already been imported
-                            if ani_mouse.available_to >= datetime.today().date(): # Check if mouse is already available in AniShare:
+                            if ani_mouse.available_to >= datetime.today().date() and not ani_mouse.new_owner: # Check if mouse is already available in AniShare:
                                 comment = Comment()
                                 anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
                                 comment.creator_id = anishareuser
@@ -194,7 +194,7 @@ class Job(HourlyJob):
                         dataset = Pup.objects.using(mousedb).get(id=pyratpup.pupid)
                         if Animal.objects.filter(pup_id=pyratpup.pupid).exists():
                             ani_mouse = Animal.objects.get(pup_id=pyratpup.pupid)  # Get AniShare mouse that has already been imported
-                            if ani_mouse.available_to >= datetime.today().date(): # Check if mouse is already available in AniShare:
+                            if ani_mouse.available_to >= datetime.today().date() and not ani_mouse.new_owner: # Check if mouse is already available in AniShare:
                                 comment = Comment()
                                 anishareuser = PyratUser.objects.using(mousedb).get(username='AniShare')
                                 comment.creator_id = anishareuser
