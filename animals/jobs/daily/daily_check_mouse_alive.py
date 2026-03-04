@@ -23,8 +23,10 @@ class Job(DailyJob):
         logger = logging.getLogger('myscriptlogger')
         TIMEDIFF = getattr(settings, "TIMEDIFF", 2)
         try:
-            animallist = Animal.objects.filter(new_owner__isnull =True).filter(available_from__lte = datetime.now().date()).filter(available_to__gte = datetime.now().date()).order_by('available_to')
+            animallist = Animal.objects.filter(available_from__lte = datetime.now().date()).filter(available_to__gte = datetime.now().date()).order_by('available_to')
             for animouse in animallist: # for all animals that are available now
+                if animouse.new_owner is None: # if new_owner is not set
+                    continue
                 if animouse.mouse_id: # if mouse_id is present
                     if MouseAll.objects.using(mousedb).filter(id=animouse.mouse_id).filter(state='live').exists(): # if mouse is alive
                         continue
