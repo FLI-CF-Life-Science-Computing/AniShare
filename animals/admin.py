@@ -408,7 +408,7 @@ class AnimalAdmin(ImportExportMixin, admin.ModelAdmin):
     ModelAdmin for Animal model
     """
     resource_class = AnimalHelmholtzResource
-    list_display = ('id','animal_type','database_id', 'lab_id','sex', 'entry_date', 'day_of_birth', 'age',  'available_from',
+    list_display = ('id','animal_type','database_id', 'pyrat_incidentid','lab_id','sex', 'entry_date', 'day_of_birth', 'age',  'available_from',
                     'available_to', 'line', 'mutations', 'location', 'licence_number',
                     'responsible_persons', 'new_owner',)
     list_display_links = ('id','animal_type','sex','entry_date', 'day_of_birth', 'age',
@@ -418,7 +418,7 @@ class AnimalAdmin(ImportExportMixin, admin.ModelAdmin):
     search_fields = ('id','animal_type', 'fish_specie', 'sex', 'database_id', 'lab_id', 'day_of_birth',
                      'line', 'mutations', 'genetic_background', 'location__name', 'new_owner', 'licence_number',
                      'available_from', 'available_to', 'responsible_person__name',
-                     'responsible_person__email', 'added_by__email',)
+                     'responsible_person__email', 'added_by__email','pyrat_incidentid')
     autocomplete_fields = ['responsible_person','responsible_person2']
     list_filter = ('animal_type','fish_specie','sex', ('responsible_person__responsible_for_lab',RelatedDropdownFilter),('line', DropdownFilter),('genetic_background', DropdownFilter),
                    ('day_of_birth', DateRangeFilterBuilder()),
