@@ -277,7 +277,7 @@ class AnimalForm(forms.ModelForm):
                     'licence_number', 'genetic_background','mutations','medical_condition', 'comment', 'new_owner',  'licence_paragraph11',)
         else:
             fields = ('amount', 'animal_type', 'fish_specie','day_of_birth',
-                    'available_from', 'available_to', 'sex', 'database_id',
+                    'available_from', 'available_to', 'sex', 'database_id','pyrat_incidentid',
                     'lab_id', 'line', 'location', 'responsible_person', 'responsible_person2',
                     'licence_number', 'genetic_background','mutations','medical_condition','comment', 'new_owner','licence_paragraph11',)
     def clean(self):
@@ -411,7 +411,7 @@ class AnimalAdmin(ImportExportMixin, admin.ModelAdmin):
     list_display = ('id','animal_type','database_id', 'pyrat_incidentid','lab_id','sex', 'entry_date', 'day_of_birth', 'age',  'available_from',
                     'available_to', 'line', 'mutations', 'location', 'licence_number',
                     'responsible_persons', 'new_owner',)
-    list_display_links = ('id','animal_type','sex','entry_date', 'day_of_birth', 'age',
+    list_display_links = ('id','animal_type','pyrat_incidentid','sex','entry_date', 'day_of_birth', 'age',
                           'available_from', 'available_to', 'line', 'mutations', 'database_id',
                           'location', 'licence_number', 'lab_id','responsible_persons',
                           'new_owner')
@@ -424,7 +424,7 @@ class AnimalAdmin(ImportExportMixin, admin.ModelAdmin):
                    ('day_of_birth', DateRangeFilterBuilder()),
                    'location', ('licence_number', DropdownFilter), ('new_owner', DropdownFilter), 'added_by')
     radio_fields = {'sex':admin.HORIZONTAL}
-    readonly_fields = ('creation_date', 'modification_date')
+    readonly_fields = ('creation_date', 'modification_date','pyrat_incidentid')
     form = AnimalForm
     save_as = True
     save_on_top = True
