@@ -25,27 +25,27 @@ class Job(HourlyJob):
         logger = logging.getLogger('myscriptlogger')
         TIMEDIFF = getattr(settings, "TIMEDIFF", 2)
         try:
-            today = datetime.now().date()
-            incidentlist = WIncident.objects.using(mousedb).all().filter(incidentclass=22).filter(status=5)
-            for incident in incidentlist:
+            today = datetime.now().date() # Gets today's date
+            incidentlist = WIncident.objects.using(mousedb).all().filter(incidentclass=22).filter(status=5) # Retrieves all incidents of class 22 (AddToAniShare) with status 5 (AddedToAniShare) from the database
+            for incident in incidentlist: # for each incident
                 skip = 0
                 error = 0
                 i = 0
-                animallist = WIncidentAnimals.objects.using(mousedb).filter(incidentid = incident.incidentid)
-                puplist = WIncidentPups.objects.using(mousedb).filter(incidentid = incident.incidentid)
-                count_mice = animallist.count()
-                count_pups = puplist.count()
-                count_animals = count_mice + count_pups
-                for pyratmouse in animallist:
+                animallist = WIncidentAnimals.objects.using(mousedb).filter(incidentid = incident.incidentid) # Retrieves all animals for the incident
+                puplist = WIncidentPups.objects.using(mousedb).filter(incidentid = incident.incidentid) # Retrieves all pups for the incident
+                count_mice = animallist.count() # Count the number of mice
+                count_pups = puplist.count() # Count the number of pups
+                count_animals = count_mice + count_pups # Count the total number of animals
+                for pyratmouse in animallist: # for each mouse in the animal list
                     i = i + 1
                     try:
-                        animouseFilter = Animal.objects.filter(mouse_id=pyratmouse.animalid)
+                        animouseFilter = Animal.objects.filter(mouse_id=pyratmouse.animalid) # Check if pup has been weaned
                         if len(animouseFilter) == 0: # Check if pup has been weaned
-                            if Mouse.objects.using(mousedb).filter(id = pyratmouse.animalid).exists():
-                                v_mouse = Mouse.objects.using(mousedb).get(id = pyratmouse.animalid)
+                            if Mouse.objects.using(mousedb).filter(id = pyratmouse.animalid).exists(): # Check if animal is a mouse
+                                v_mouse = Mouse.objects.using(mousedb).get(id = pyratmouse.animalid) 
                             else:
                                 continue
-                            if Animal.objects.filter(database_id=v_mouse.eartag).exists():
+                            if Animal.objects.filter(database_id=v_mouse.eartag).exists(): 
                                 animouse = Animal.objects.get(database_id=v_mouse.eartag)
                                 animouse.mouse_id = v_mouse.id
                                 animouse.animal_type = "mouse"
