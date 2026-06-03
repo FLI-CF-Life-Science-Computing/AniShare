@@ -246,10 +246,10 @@ class Job(HourlyJob):
  
                             if dataset.eartag:
                                 comment.content = 'Pup {} without licence can not be imported'.format(dataset.eartag)
-                                send_mail("AniShare: Pup without license", 'You created a work request with the ID {} to add the pup {} to AniShare. It is not possible to import a pup without a license. '.format(incident.incidentid, ani_mouse.database_id), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                                send_mail("AniShare: Pup without license", 'You created a work request with the ID {} to add the pup {} to AniShare. It is not possible to import a pup without a license. '.format(incident.incidentid, dataset.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                             else:
                                 comment.content = 'Pup {} without licence can not be imported'.format(pyratpup.pupid)
-                                send_mail("AniShare: Pup without license", 'You created a work request with the ID {} to add the pup {} to AniShare. It is not possible to import a pup without a license. '.format(incident.incidentid, ani_mouse.database_id), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
+                                send_mail("AniShare: Pup without license", 'You created a work request with the ID {} to add the pup {} to AniShare. It is not possible to import a pup without a license. '.format(incident.incidentid, dataset.eartag), ADMIN_EMAIL, [initiator_mail,ADMIN_EMAIL])
                             comment.save(using=mousedb_write)
                             comment.created = comment.created + timedelta(hours=TIMEDIFF)
                             comment.save(using=mousedb_write)
