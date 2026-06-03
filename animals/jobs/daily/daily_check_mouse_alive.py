@@ -27,7 +27,7 @@ class Job(DailyJob):
             for animouse in animallist: # for all animals that are available now
                 if animouse.new_owner is None: # if new_owner is not set
                     continue
-                if len(animouse.new_owner) > 0: # if new_owner is empty
+                if len(animouse.new_owner) == 0: # if new_owner is empty
                     continue
                 if animouse.mouse_id: # if mouse_id is present
                     if MouseAll.objects.using(mousedb).filter(id=animouse.mouse_id).filter(state='live').exists(): # if mouse is alive
