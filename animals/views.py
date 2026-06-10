@@ -698,7 +698,10 @@ def importfishtoanishare(request):
             new_fish.available_to   = availabletolist[i]
             new_fish.licence_number = dataset.license
             new_fish.day_of_birth   = dataset.dob
-            new_fish.comment        = dataset.tag
+            if new_fish.comment:
+                new_fish.comment        = new_fish.comment + '\n' + dataset.tag
+            else:
+                new_fish.comment        = dataset.tag
             if dataset.specie == 40291147:   # It is a Notobranchius
                 new_fish.fish_specie = 'n'
             elif dataset.specie == 40291120:
