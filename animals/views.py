@@ -664,13 +664,26 @@ def importfishtoanishare(request):
         logger.debug('{}:fishlist2 {}'.format(datetime.now(), fishlist))
         i=0
         for dataset in fishlist:
+            existing_fish_id = 0
             try:
                 fish_already_imported = Animal.objects.get(fish_id=dataset.id)
-                messages.add_message(request, messages.ERROR,'The fish with the ID {} is already imported. A new import is not possible'.format(dataset.animalnumber))
-                continue
+                new_available_from = datetime.strptime(availablefromlist[i], '%Y-%m-%d').date()
+                if new_available_from <= fish_already_imported.available_to:
+                    messages.add_message(request, messages.ERROR,'The fish with the ID {} is currently available in AniShare. A new import is not possible'.format(dataset.animalnumber))
+                    continue
+                else:
+                    existing_fish_id = fish_already_imported.id
+                    old_info = 'Previous availability: from {} to {}'.format(fish_already_imported.available_from,fish_already_imported.available_to)
+                    if fish_already_imported.comment:
+                        fish_already_imported.comment = fish_already_imported.comment + '\n' + old_info
+                    else:
+                        fish_already_imported.comment = old_info
             except Animal.DoesNotExist:
                 i=i
-            new_fish = Animal()
+            if existing_fish_id == 0:
+                new_fish = Animal()
+            else:
+                new_fish = Animal.objects.get(id=existing_fish_id)
             new_fish.animal_type    = "fish"
             new_fish.fish_id        = dataset.id
             if (dataset.identifier1 != ""):
