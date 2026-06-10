@@ -676,8 +676,10 @@ def importfishtoanishare(request):
                     old_info = 'Previous availability: from {} to {}'.format(fish_already_imported.available_from,fish_already_imported.available_to)
                     if fish_already_imported.comment:
                         fish_already_imported.comment = fish_already_imported.comment + '\n' + old_info
+                        fish_already_imported.save()
                     else:
                         fish_already_imported.comment = old_info
+                        fish_already_imported.save()
             except Animal.DoesNotExist:
                 i=i
             if existing_fish_id == 0:
