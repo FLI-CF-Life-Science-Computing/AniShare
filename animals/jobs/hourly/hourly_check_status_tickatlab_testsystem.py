@@ -32,14 +32,14 @@ class Job(HourlyJob):
                 return
             fishlist_tickatlab = Fish.objects.using(fishdb).all().filter(teamid=fishteam.id).order_by('id')
             fishids_tickatlab = [fish.id for fish in fishlist_tickatlab]
-            animals = Animal.objects.filter(animal_type='fish').filter(available_to__lt=datetime.now().date())
+            animals = Animal.objects.filter(animal_type='fish').filter(available_to__gt=datetime.now().date())
             for fish in animals:
-                if fish.fish_id in fishids_tickatlab:
+                if int(fish.fish_id) in fishids_tickatlab:
                     continue
                 else:
                     logger.debug('Fish {} is no longer available in Tickatlab, setting available_to to today'.format(fish.fish_id))
                     fish.available_to = datetime.now().date()
-                    fish.save()   
+                    fish.save()
 
         except BaseException as e: 
             management.call_command("clearsessions")
