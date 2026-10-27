@@ -268,7 +268,7 @@ class FishTeam(models.Model):
 
 class FishTeamName(models.Model):
     id = models.IntegerField(db_column='ID', primary_key=True)
-    name = models.IntegerField(db_column='NAME',)
+    name = models.CharField(db_column='NAME', max_length=512)
 
     class Meta:
         managed = False
