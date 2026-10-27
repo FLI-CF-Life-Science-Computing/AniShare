@@ -267,7 +267,7 @@ class FishTeam(models.Model):
         db_table = 'VTEAM'
 
 class FishTeamName(models.Model):
-    id = models.IntegerField(db_column='ID',)
+    id = models.IntegerField(db_column='ID', primary_key=True)
     name = models.IntegerField(db_column='NAME',)
 
     class Meta:
