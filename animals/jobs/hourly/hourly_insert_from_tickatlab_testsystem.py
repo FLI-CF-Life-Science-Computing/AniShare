@@ -38,12 +38,13 @@ class Job(HourlyJob):
             imported_fish_ids = []
             for animal in imported_fish_list:
                 #print('Fish {} is already in AniShare'.format(animal.fish_id))
-                imported_fish_ids.append(int(animal.fish_id))
-                if animal.available_to < datetime.now().date(): # If the fish is already in AniShare but not available anymore, set the available_to date to today + 365 days and add a comment to the animal.
+                if animal.available_to < datetime.now().date(): # If the fish is already in AniShare but not available anymore, set a comment and remove a possible old new owner
                     info = 'Previous availability: from {} to {}'.format(animal.available_from,animal.available_to)
                     animal.comment = "{}\n{}".format(animal.comment, info)
-                    animal.available_to = datetime.now().date() + timedelta(days=365)
+                    animal.new_owner = None
                     animal.save()
+                else:
+                    imported_fish_ids.append(int(animal.fish_id)) # Don't import the fish again
 
             fish_ids_left = set(fishids) - set(imported_fish_ids) # Get the fish ids that are not yet in AniShare
             for fish_id in fish_ids_left:
