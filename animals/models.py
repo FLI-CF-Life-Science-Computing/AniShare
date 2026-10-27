@@ -281,8 +281,13 @@ class FishTagIndexRecord(models.Model):
     color       = models.IntegerField(db_column='COLOR',)
 
     class Meta:
-            managed = False
-            db_table = 'VTAGINDEXRECORD'
+        managed = False
+        db_table = 'VTAGINDEXRECORD'   
+                
+    def _do_insert(self, baseqs, using, fields, returning_fields, raw):
+        # Wir setzen returning_fields auf None, damit Django 
+        # keine RETURNING-Klausel an Oracle sendet.
+        return super()._do_insert(baseqs, using, fields, None, raw)
 
 class FishTagRecord(models.Model):
     id      = models.IntegerField(db_column='ID', primary_key=True)
