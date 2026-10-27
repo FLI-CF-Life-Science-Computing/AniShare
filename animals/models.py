@@ -98,7 +98,7 @@ class Animal(models.Model):
     ),
                                    default='mouse')
     database_id = models.CharField(max_length=200, null=True, blank=True, help_text="ID of animal in eg. PYRAT")
-    fish_id = models.CharField(max_length=200, null=True, blank=True, help_text="DB ID of fish in tickatlab")
+    fish_id = models.PositiveIntegerField(max_length=200, null=True, blank=True, help_text="DB ID of fish in tickatlab")
     mouse_id = models.CharField(max_length=200, null=True, blank=True, help_text="DB ID of mouse in PyRat")
     pup_id = models.CharField(max_length=200, null=True, blank=True, help_text="DB ID of pup in PyRat")
     lab_id = models.CharField(max_length=200, null=True, blank=True, help_text="ID of lab in eg. PYRAT")
@@ -283,7 +283,7 @@ class FishTagIndexRecord(models.Model):
     class Meta:
         managed = False
         db_table = 'VTAGINDEXRECORD'   
-                
+
     def _do_insert(self, baseqs, using, fields, returning_fields, raw):
         # Wir setzen returning_fields auf None, damit Django 
         # keine RETURNING-Klausel an Oracle sendet.
