@@ -25,24 +25,28 @@ class Job(HourlyJob):
             send_mail("AniShare Importscriptfehler hourly_insert_from_tickatlab_testsystem.py", 'TICKATLAB_TEAM_AVAILABLE_ANIMALS is not set in local_settings.py', ADMIN_EMAIL, [ADMIN_EMAIL])
             return
         try:
+            # Get the tickatlab team from the tickatlab for offering fish in AniShare
             fishteam = FishTeamName.objects.using(fishdb).get(name=TICKATLAB_TEAM_AVAILABLE_ANIMALS)
             if fishteam is None:
                 logger.debug('TICKATLAB_TEAM_AVAILABLE_ANIMALS {} not found in FishTeamName'.format(TICKATLAB_TEAM_AVAILABLE_ANIMALS))
                 send_mail("AniShare Importscriptfehler hourly_insert_from_tickatlab_testsystem.py", 'TICKATLAB_TEAM_AVAILABLE_ANIMALS {} not found in FishTeamName'.format(TICKATLAB_TEAM_AVAILABLE_ANIMALS), ADMIN_EMAIL, [ADMIN_EMAIL])
                 return
+            # Get all fish from the tickatlab team and check if they are already in AniShare. If not, insert them into AniShare.
             fishlist = Fish.objects.using(fishdb).all().filter(teamid=fishteam.id).order_by('id')
-            fishids = [fish.id for fish in fishlist]
-            imported_fish_list = Animal.objects.filter(animal_type='fish').filter(fish_id__in=fishids)
+            fishids = [fish.id for fish in fishlist] # Save only the fish ids
+            imported_fish_list = Animal.objects.filter(animal_type='fish').filter(fish_id__in=fishids) # Get all fish that are already in AniShare
             imported_fish_ids = []
             for animal in imported_fish_list:
+                print('Fish {} is already in AniShare'.format(animal.fish_id))
                 imported_fish_ids.append(animal.fish_id)
-                if animal.available_to < datetime.now().date():
+                if animal.available_to < datetime.now().date(): # If the fish is already in AniShare but not available anymore, set the available_to date to today + 365 days and add a comment to the animal.
                     info = 'Previous availability: from {} to {}'.format(animal.available_from,animal.available_to)
                     animal.comment = "{}\n{}".format(animal.comment, info)
                     animal.available_to = datetime.now().date() + timedelta(days=365)
                     animal.save()
+                continue
 
-            fish_ids_left = set(fishids) - set(imported_fish_ids)
+            fish_ids_left = set(fishids) - set(imported_fish_ids) # Get the fish ids that are not yet in AniShare
             for fish_id in fish_ids_left:
                 fish = Fish.objects.using(fishdb).get(id=fish_id)
                 animal = Animal()
