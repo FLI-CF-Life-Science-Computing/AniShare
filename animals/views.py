@@ -721,7 +721,7 @@ def importfishtoanishare(request):
                 new_location.save()
                 new_fish.location       = Location.objects.get(name=dataset.location)
             #new_fish.mutations      = dataset.strain
-            new_fish.line           = dataset.strain  
+            new_fish.line           = dataset.strain
             try:        
                 new_fish.responsible_person = Person.objects.get(name=dataset.responsible)
             except:

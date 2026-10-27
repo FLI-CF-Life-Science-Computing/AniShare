@@ -266,6 +266,33 @@ class FishTeam(models.Model):
         managed = False
         db_table = 'VTEAM'
 
+class FishTeamName(models.Model):
+    id = models.IntegerField(db_column='ID',)
+    name = models.IntegerField(db_column='NAME',)
+
+    class Meta:
+        managed = False
+        db_table = 'VTEAMNAME'
+
+class FishTagIndexRecord(models.Model):
+    tag         = models.CharField(db_column='TAG', max_length=255)
+    objectid    = models.IntegerField(db_column='OBJECTID',)
+    typename    = models.CharField(db_column='TYPENAME', max_length=255)
+    color       = models.IntegerField(db_column='COLOR',)
+
+    class Meta:
+            managed = False
+            db_table = 'VTAGINDEXRECORD'
+
+class FishTagRecord(models.Model):
+    id      = models.IntegerField(db_column='ID', primary_key=True)
+    tags    = models.CharField(db_column='TAGS', max_length=4000)
+    typename = models.CharField(db_column='TYPENAME', max_length=255)
+
+    class Meta:
+            managed = False
+            db_table = 'VTAGRECORD'
+
 class FishPeople(models.Model):
     id = models.IntegerField(db_column='ID', primary_key=True)
     login = models.CharField(db_column='LOGIN', max_length=255)
